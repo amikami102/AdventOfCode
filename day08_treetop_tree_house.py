@@ -173,7 +173,8 @@ nrows, ncols = len(forest) - 1, len(forest_transposed) - 1
 fforest = forest.copy()
 
 
-def score_from_side(direction: str):
+def score_from_side(direction: str) -> None:
+    """Score trees from `direction`"""
     if direction in ('top', 'bottom'):
         def key(t):
             return t.column
