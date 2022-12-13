@@ -30,6 +30,7 @@ With 16 trees visible on the edge and another 5 visible in the interior,
 
 Consider your map; how many trees are visible from outside the grid?
 """
+
 from pprint import pprint
 import collections
 import itertools
@@ -53,12 +54,11 @@ top.pop()
 top.popleft()
 bottom.popleft()
 bottom.pop()
-left, right = collections.deque(line.popleft() for line in forest),\
-       collections.deque(line.pop() for line in forest)
+left, right = collections.deque(line.popleft() for line in forest), \
+              collections.deque(line.pop() for line in forest)
 visible_set.update(left)
 visible_set.update(right)
 data = sorted(itertools.chain(*forest), key=lambda tree: tree.column)
-
 
 for edge, row in zip(left, forest):
     highest = edge.height
@@ -67,7 +67,6 @@ for edge, row in zip(left, forest):
             highest = tree.height
             row.remove(tree)
             visible_set.add(tree)
-
 
 for edge, row in zip(right, forest):
     highest = edge.height
@@ -78,8 +77,7 @@ for edge, row in zip(right, forest):
             row.remove(tree)
             visible_set.add(tree)
 
-
-forest_rearranged =\
+forest_rearranged = \
     collections.deque(
         collections.deque(g)
         for _, g in itertools.groupby(data, key=lambda tree: tree.column)
@@ -93,7 +91,6 @@ for edge, column in zip(top, forest_rearranged):
             column.remove(tree)
             visible_set.add(tree)
 
-
 for edge, column in zip(bottom, forest_rearranged):
     highest = edge.height
     column_from_bottom = collections.deque(reversed(column.copy()))
@@ -103,7 +100,7 @@ for edge, column in zip(bottom, forest_rearranged):
             column.remove(tree)
             visible_set.add(tree)
 
-print(f'{len(visible_set):,} trees are visible from outside the grid.')
+pprint(f'{len(visible_set):,} trees are visible from outside the grid.')  # 1693
 
 """
 To measure the viewing distance from a given tree, look up, down, left, and right from that tree; 
@@ -148,3 +145,76 @@ This tree's scenic score is 8 (2 * 2 * 1 * 2); this is the ideal spot for the tr
 
 Consider each tree on your map. What is the highest scenic score possible for any tree?
 """
+
+tree_tuple = collections.namedtuple('tree_tuple', ['row', 'column', 'height', 'scores'])
+
+with open('day08_input.txt', 'r') as f:
+    data = [
+        tree_tuple(r, c, int(height), [])
+        for r, line in enumerate(f)
+        for c, height in enumerate(line.strip())
+    ]
+    data.sort(key=lambda tree: tree.row)
+
+# score from the left
+forest = collections.deque(
+    collections.deque(g)
+    for _, g in itertools.groupby(data, key=lambda tree: tree.row)
+)
+data.sort(key=lambda tree: tree.column)
+forest_transposed = collections.deque(
+    collections.deque(g)
+    for _, g in itertools.groupby(
+        data,
+        key=lambda tree: tree.column
+    )
+)
+nrows, ncols = len(forest) - 1, len(forest_transposed) - 1
+fforest = forest.copy()
+
+
+def score_from_side(direction: str):
+    if direction in ('top', 'bottom'):
+        def key(t):
+            return t.column
+    else:
+        def key(t):
+            return t.row
+
+    data.sort(key=key)
+    grid = collections.deque(
+        collections.deque(g)
+        for _, g in itertools.groupby(data, key=key)
+    )
+
+    for line in grid:
+        if direction == 'right' or direction == 'bottom':
+            line.reverse()
+        line_of_sight = collections.deque([line[0]])
+        for tree in line:
+            if (tree.column == 0) or (tree.column == ncols) or (tree.row == 0) or (tree.row == nrows):
+                score = 0
+            else:
+                score = 0
+                for adj in line_of_sight:
+                    score += 1
+                    if adj.height >= tree.height:
+                        break
+                line_of_sight.appendleft(tree)
+            new_scores = fforest[tree.row][tree.column].scores + [score]
+            fforest[tree.row][tree.column] = tree._replace(scores=new_scores)
+
+
+score_from_side('left')
+score_from_side('right')
+score_from_side('top')
+score_from_side('bottom')
+pprint(fforest)
+
+
+max_score = 1
+for tree in itertools.chain(*fforest):
+    final = tree.scores[0] * tree.scores[1] * tree.scores[2] * tree.scores[3]
+    if final > max_score:
+        max_score = final
+print(f'The highest visibility score is {max_score}.')
