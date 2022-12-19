@@ -4,6 +4,7 @@ addx V
     (V can be negative.)
 noop
     takes one cycle to complete. It has no other effect.
+
 Find the signal strength during the 20th, 60th, 100th, 140th, 180th, and 220th cycles.
 What is the sum of these six signal strengths?
 ---
@@ -16,31 +17,53 @@ Cycle, start X, end X, executing
 """
 from pprint import pprint
 import re
-import collections
+import itertools
 
 addx_pattern = re.compile(r"^addx (?P<value>-?\d+)$")
-cycle = collections.namedtuple('cycle', ['c', 'start', 'end', 'executing'])
 
-signals = []
+cycles = []
 with open('day10_input.txt', 'r') as f:
     c, X = 0, 1
     for line in f:
         matched = re.match(addx_pattern, line.strip())
         if matched is None:
             c += 1
-            signals.append(cycle(c, X, X, line.strip()))
+            cycles.append((X, X))
         else:
-            c += 1
-            signals.append(cycle(c, X, X, line.strip()))
-            c += 1
+            cycles.append((X, X))
             end = X + int(matched.group('value'))
-            signals.append(cycle(c, X, end, line.strip()))
+            cycles.append((X, end))
             X = end
 
-
 total_strength = 0
-for cycle in signals:
-    if cycle.c in [20, 60, 100, 140, 180, 220]:
+for i, cycle in enumerate(cycles):
+    if i+1 in [20, 60, 100, 140, 180, 220]:
         print(cycle)
-        total_strength += cycle.c * cycle.start
+        total_strength += (i+1) * cycle[0]
 pprint(total_strength)
+
+"""
+Part 2
+"""
+
+
+def draw_pixel(position: int, X: int) -> str:
+    """
+    Draw '#' if the sprite covers the pixel position of current cycle
+    and '.' otherwise.
+    """
+    sprite = {X-1, X, X + 1}
+    width = 40
+    return '#' if position % width in sprite else '.'
+
+
+pixels = []
+for i, cycle in enumerate(cycles):
+    X_start, X_end = cycle
+    pixel = draw_pixel(i, X_start)
+    pixels.append(pixel)
+
+width = 40
+lines = [iter(pixels)] * width
+for line in zip(*lines):
+    print(''.join(itertools.chain(*line)))
