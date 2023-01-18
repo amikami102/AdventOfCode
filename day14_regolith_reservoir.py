@@ -3,7 +3,7 @@
 """
 import itertools
 import collections
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, Tuple
 import enum
 
 import numpy as np
@@ -35,7 +35,6 @@ class Path:
     """
     A python class object holding a path.
     """
-
     def __init__(self, points: Iterator[Point] | Iterable[Point]):
         self.segments = []
         self.points = list(points) if isinstance(points, Iterator) else points
@@ -63,10 +62,12 @@ class gridLocation:
     def __init__(self, **kwargs):
         self.x, self.y = None, None
         self.row, self.column = None, None
+
         if 'x' in kwargs and 'y' in kwargs:
             self.x, self.y = kwargs['x'], kwargs['y']
         if 'row' in kwargs and 'column' in kwargs:
             self.row, self.column = kwargs['row'], kwargs['column']
+
 
 def minmax(iterable, **kwargs):
     """
@@ -105,7 +106,12 @@ class GridMatrix:
             row=0, column=500-self.xmin
         )
 
-    def map_paths(self, paths: list[Path]):
+    def draw_bottom(self):
+        for j in range(self.xmax - self.xmin+1):
+            self._grid[self.ymax, j] = Cell.ROCK
+
+
+    def draw_paths(self, paths: list[Path]):
         """
         Map rock paths on the grid.
         """
@@ -124,6 +130,8 @@ class GridMatrix:
         Block the cell location on the grid with SAND.
         """
         self._grid[loc.row, loc.column] = Cell.SAND
+        if loc == self._source:
+            raise OverflowError
 
     def sand_fall(self, current_loc: gridLocation = None):
         """
@@ -164,23 +172,42 @@ with open('day14_input.txt', 'r') as f:
 for path in paths:
     path.draw_segments()
 
-xmin, xmax = minmax(
-    map(lambda coord: coord.x, (point for path in paths for point in path.points))
-)
-ymin, ymax = minmax(
-    map(lambda coord: coord.y, (point for path in paths for point in path.points))
-)
-xmin, xmax = min(500, xmin), max(500, xmax)
-ymin, ymax = min(0, ymin), max(0, ymax)
+
+def measure_necessary_gridsize(part2: bool = False) -> tuple[int, int, int, int]:
+    xmin, xmax = minmax(
+        map(lambda coord: coord.x, (point for path in paths for point in path.points))
+    )
+    ymin, ymax = minmax(
+        map(lambda coord: coord.y, (point for path in paths for point in path.points))
+    )
+    if part2:
+        return min(-1200, xmin), max(1200, xmax), min(0, ymin), max(0, ymax+2)
+    else:
+        return min(500, xmin), max(500, xmax), min(0, ymin), max(0, ymax)
 
 
-g = GridMatrix(xmin, xmax, ymin, ymax)
-g.map_paths(paths)
-for count in itertools.count():
+# part 1
+g = GridMatrix(*measure_necessary_gridsize())
+g.draw_paths(paths)
+for count in itertools.count(start=1):
     try:
         g.sand_fall()
     except IndexError:
         break
+print(count)
+
+
+# part 2
+g = GridMatrix(*measure_necessary_gridsize(True))
+g.draw_paths(paths)
+g.draw_bottom()
+for count in itertools.count(start=1):
+    try:
+        g.sand_fall()
+    except OverflowError:
+        break
+
+assert g._grid[g._source.row, g._source.column] == Cell.SAND
 print(count)
 
 
