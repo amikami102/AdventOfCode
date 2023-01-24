@@ -110,7 +110,6 @@ class GridMatrix:
         for j in range(self.xmax - self.xmin+1):
             self._grid[self.ymax, j] = Cell.ROCK
 
-
     def draw_paths(self, paths: list[Path]):
         """
         Map rock paths on the grid.
