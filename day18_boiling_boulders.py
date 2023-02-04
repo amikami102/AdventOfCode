@@ -34,11 +34,10 @@ TO build OUTSIDE_from_inside:
             a) it's not one of the input cubes;
             b) it's in the OUTSIDE set.
         2. If conditions 1a) and 1b) are met, add +1 to surface area count.
-Since it's the cubes in OUTSIDE_from_inside that we know are
+It's the cubes in OUTSIDE_from_inside that we know are
 definitely adjacent to the innerCubes and are not one of innerCubes that
-could be airpockets like (2, 2, 5), we need to check that the cubes in _from_inside
-are in OUTSIDE_from_outside.
-Every time the same cube is raised as being in _from_outside, we are counting a unique surface area.
+could be air pockets like (2, 2, 5) from the example.
+Every time the same cube in _from_inside is confirmed to be in _from_outside, we are counting a unique surface area.
 Therefore, the true surface area count is found by counting the times a cube in OUTSIDE_from_inside
 is found in OUTSIDE_from_outside.
 """
@@ -48,7 +47,7 @@ from typing import Iterable, Iterator, TypeVar
 
 Cube = tuple[int, int, int]
 
-with open('day18_test.txt', 'r') as f:
+with open('day18_input.txt', 'r') as f:
     innerCubes: frozenset[Cube] = frozenset([tuple(int(c) for c in cube.strip().split(',')) for cube in f])
 
 xyz_shifts = [
@@ -62,6 +61,7 @@ def get_adjacent_cubes(cube: Cube) -> Iterator[Cube]:
     for shift in xyz_shifts:
         yield tuple(sum(coord) for coord in zip(cube, shift))
 
+# part 1 4314
 surface_areas_part1 = sum(
     1
     for inner_cube in innerCubes
@@ -109,9 +109,6 @@ while candidateQueue:
                 min_z - 1 <= neighbor[2] <= max_z + 1
         ) and neighbor not in innerCubes and neighbor not in outside_from_outside:
             candidateQueue.append(neighbor)
-
-
-
 outside_from_inside = [
     neighbor
     for cube in innerCubes
@@ -122,4 +119,5 @@ surface_areas_part2 = sum(
     cube in outside_from_outside
     for cube in outside_from_inside
 )
+#answer 2444
 print(surface_areas_part2)
