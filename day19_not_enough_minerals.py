@@ -3,18 +3,15 @@
 
 Inspired by
     - (u/4HbQ although this fundamentally relies on tuning the sorting key function and the threshold count) https://www.reddit.com/r/adventofcode/comments/zpihwi/comment/j0tvzgz/?utm_source=share&utm_medium=web2x&context=3
-    - (u/debnet based on above)
+    - (u/debnet based on above, but more readable and faster due to functools.cache)
     https://www.reddit.com/r/adventofcode/comments/zpihwi/comment/j0vq06m/?utm_source=share&utm_medium=web2x&context=3
-
-Incorporating functools.cache like u/debnet would make it much faster.
 
 """
 import functools
 import re
 import enum
 from typing import NamedTuple
-from dataclasses import dataclass, field
-from functools import cache
+
 import numpy as np
 
 
@@ -53,36 +50,39 @@ def parse(line: str) -> tuple[int, Blueprint]:
     )
 
 
-def run(blueprint: Blueprint, minutes: int) -> int:
+def run(blueprint: Blueprint, minutes: int, threshold: int) -> int:
     current = [
         (
             np.array([0, 0, 0, 0]),  # the resources
             np.array([1, 0, 0, 0])  # the robots
         )
     ]
-    sortkey = lambda arrs: tuple(zip(*arrs))[::-1]
+    sortkey = lambda arrs: tuple(zip(*arrs))[::-1]                    # reverse to put geode tuple first
     for _ in range(minutes):
-        next_to_do = []
+        next_to_do: list = []
         for resources, robots in current:
             for costs, new in blueprint:
                 if all(c <= r for r, c in zip(resources, costs)):     # can we afford this production?
                     will_have = resources + robots - costs
                     will_make = robots + new
                     next_to_do.append((will_have, will_make))
-        current = sorted(next_to_do, reverse=True, key=sortkey)[:10000]
+        current = sorted(next_to_do, reverse=True, key=sortkey)[:threshold]
     return max(resources[Material.GEODE] for resources, _ in current)
 
 
 with open('day19_input.txt', 'r') as f:
-    # part1 = sum(
-    #     run(blueprint, 24) * i
-    #     for i, blueprint in map(parse, f)
-    # )
-    part2 = functools.reduce(
-        lambda x,y: x*y,
-        (run(blueprint, 32)
-        for i, blueprint in map(parse, f)
-        if i < 4)
-    )
+    blueprints = list(map(parse, f))
+part1: int = sum(
+    run(blueprint, 24, 3000) * i
+    for i, blueprint in blueprints
+)
 print(part1)
+part2: int = functools.reduce(
+    lambda x, y: x * y,
+    (
+        run(blueprint, 32, 10000)
+        for i, blueprint in blueprints
+        if i < 4
+    )
+)
 print(part2)
