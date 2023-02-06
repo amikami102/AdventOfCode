@@ -2,9 +2,14 @@
 --- Day 19: Not Enough Minerals ---
 
 Inspired by
-    - (u/4HbQ) https://www.reddit.com/r/adventofcode/comments/zpihwi/comment/j0tvzgz/?utm_source=share&utm_medium=web2x&context=3
-    - https://www.reddit.com/r/adventofcode/comments/zpihwi/comment/j0vq06m/?utm_source=share&utm_medium=web2x&context=3
+    - (u/4HbQ although this fundamentally relies on tuning the sorting key function and the threshold count) https://www.reddit.com/r/adventofcode/comments/zpihwi/comment/j0tvzgz/?utm_source=share&utm_medium=web2x&context=3
+    - (u/debnet based on above)
+    https://www.reddit.com/r/adventofcode/comments/zpihwi/comment/j0vq06m/?utm_source=share&utm_medium=web2x&context=3
+
+Incorporating functools.cache like u/debnet would make it much faster.
+
 """
+import functools
 import re
 import enum
 from typing import NamedTuple
@@ -64,13 +69,20 @@ def run(blueprint: Blueprint, minutes: int) -> int:
                     will_have = resources + robots - costs
                     will_make = robots + new
                     next_to_do.append((will_have, will_make))
-        current = sorted(next_to_do, reverse=True, key=sortkey)[:3000]
+        current = sorted(next_to_do, reverse=True, key=sortkey)[:10000]
     return max(resources[Material.GEODE] for resources, _ in current)
 
 
-with open('day19_test.txt', 'r') as f:
-    part1 = sum(
-        run(blueprint, 24) * i
+with open('day19_input.txt', 'r') as f:
+    # part1 = sum(
+    #     run(blueprint, 24) * i
+    #     for i, blueprint in map(parse, f)
+    # )
+    part2 = functools.reduce(
+        lambda x,y: x*y,
+        (run(blueprint, 32)
         for i, blueprint in map(parse, f)
+        if i < 4)
     )
 print(part1)
+print(part2)
