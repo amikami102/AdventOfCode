@@ -78,7 +78,7 @@ def elves_make_proposals(current_grid: Grid, current_rules: collections.deque) -
     return proposals
 
 
-def diffuse(grid: Grid, n: int) -> Grid:
+def diffuse_n_rounds(grid: Grid, n: int) -> Grid:
     """
     Simulate elf diffusion over n rounds.
     """
@@ -91,13 +91,12 @@ def diffuse(grid: Grid, n: int) -> Grid:
     return grid
 
 
-def minmax(iterator: Iterator) -> tuple:
-    iterable = list(iterator)
-    MinMax = collections.namedtuple('MinMax', ['Min', 'Max'])
-    return MinMax(min(iterable), max(iterable))
-
-
 def count_ground(grid: Grid) -> int:
+    """Count the number of GROUND cells in the smallest rectangle containing all the elves"""
+    def minmax(iterator: Iterator) -> tuple:
+        iterable = list(iterator)
+        MinMax = collections.namedtuple('MinMax', ['Min', 'Max'])
+        return MinMax(min(iterable), max(iterable))
     elves = {point for point in grid.keys() if grid[point] == ELF}
     x0, x1 = minmax(x for x, _ in elves)
     y0, y1 = minmax(y for _, y in elves)
@@ -106,5 +105,33 @@ def count_ground(grid: Grid) -> int:
 
 with open('day23_input.txt', 'r') as f:
     ground = Grid(grid=f.read().splitlines(), default=GROUND, directions=directions8)
-part1 = count_ground(diffuse(ground, 10))
-print(f'Part 1: {part1}')
+n = 10
+part1 = count_ground(diffuse_n_rounds(ground, n))
+print(f'Part 1: After {n} rounds, there are {part1} ground spaces.')    # 3780
+
+
+def diffuse(grid: Grid) -> Iterator[Grid]:
+    """
+    Diffuse elves until none of them can move anymore.
+    """
+    current_rules = collections.deque(proposal_rules)
+    yield grid
+    while True:
+        moves = {
+            loc: elves[0]
+            for loc, elves in elves_make_proposals(grid, current_rules).items()
+            if len(elves) == 1
+        }
+        if not moves:
+            return
+        else:
+            for loc, elf in moves.items():
+                grid[loc], grid[elf] = ELF, GROUND
+        current_rules.rotate(-1)
+        yield grid
+
+
+with open('day23_input.txt', 'r') as f:
+    ground = Grid(grid=f.read().splitlines(), default=GROUND, directions=directions8)
+part2 = sum(1 for _ in diffuse(ground))
+print(f'Part 2: Elves keep moving until round {part2}.')    # 930
