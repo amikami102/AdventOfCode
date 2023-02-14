@@ -154,15 +154,6 @@ def successors(problem: BasinProblem, parent_node: Node) -> Iterable[Node]:
     ]
 
 
-with open('day24_input.txt', 'r') as f:
-    basin_problem = BasinProblem(
-        grid=Grid(
-            f.read().splitlines(),
-            directions=(*orthogonals, wait)
-        )
-    )
-
-
 def a_star_search(problem: BasinProblem) -> Optional[Node]:
     """
     Implement an A* algorithm to navigate through the basin with the shortest path.
@@ -187,5 +178,37 @@ def a_star_search(problem: BasinProblem) -> Optional[Node]:
     return None
 
 
+def reverse_trip(problem: BasinProblem, minutes: float) -> BasinProblem:
+    """Reverse the initial and goal state coordinates of the problem"""
+    past_initial, past_goal = problem.initial, problem.goal
+    problem.initial = BasinState(t=past_initial.t + minutes, point=past_goal.point)
+    problem.goal = BasinState(t=None, point=past_initial.point)
+    return problem
+
+
+def make_the_trip(problem: BasinProblem) -> float:
+    """
+    Make a three-leg trip where
+        leg1 is from initial to goal,
+        leg2 is the reverse of leg1, and
+        leg3 is a repeat of leg1.
+    Continue one leg after another without pause.
+    """
+    leg1 = a_star_search(problem)
+    leg2 = a_star_search(reverse_trip(problem, leg1.cost))
+    leg3 = a_star_search(reverse_trip(problem, leg2.cost))
+    return leg1.cost + leg2.cost + leg3.cost
+
+
+with open('day24_input.txt', 'r') as f:
+    basin_problem = BasinProblem(
+        grid=Grid(
+            f.read().splitlines(),
+            directions=(*orthogonals, wait)
+        )
+    )
 part1 = a_star_search(basin_problem)
 print(f'Part 1: {int(part1.cost)} minutes')
+
+part2 = make_the_trip(basin_problem)
+print(f'Part 2: {int(part2)} minutes')
