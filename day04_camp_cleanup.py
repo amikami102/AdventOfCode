@@ -12,7 +12,7 @@ from typing import *
 def parse(txt_filename: str) -> Iterable[tuple[int, ...]]:
     """
     Each line of the file is '{left1}-{right1},{left2}-{right2}'.
-    Yield each line as a 4-length tuple of integers.
+    Parse each line as a 4-length tuple of integers.
 
     >>> parsed = parse("1-99,2-98\n41-98,41-97")
     >>> for line in parsed:

@@ -1,164 +1,107 @@
 """
-They do, however, have a drawing of the starting stacks of crates and the rearrangement procedure (your puzzle input).
-For example:
-```
-    [D]
-[N] [C]
-[Z] [M] [P]
- 1   2   3
+-- Day 05: Supply Stack --
 
-move 1 from 2 to 1
-move 3 from 1 to 3
-move 2 from 2 to 1
-move 1 from 1 to 2
-```
-
-In this example, there are three stacks of crates.
-Stack 1 contains two crates: crate Z is on the bottom, and crate N is on top.
-Stack 2 contains three crates; from bottom to top, they are crates M, C, and D.
-Finally, stack 3 contains a single crate, P.
-
-Then, the rearrangement procedure is given.
-In each step of the procedure, a quantity of crates is moved from one stack to a different stack.
-In the first step of the above rearrangement procedure,
-one crate is moved from stack 2 to stack 1, resulting in this configuration:
-
-[D]
-[N] [C]
-[Z] [M] [P]
- 1   2   3
-In the second step, three crates are moved from stack 1 to stack 3.
-Crates are moved one at a time, so the first crate to be moved (D) ends up below the second and third crates:
-
-        [Z]
-        [N]
-    [C] [D]
-    [M] [P]
- 1   2   3
-Then, both crates are moved from stack 2 to stack 1.
-Again, because crates are moved one at a time, crate C ends up below crate M:
-
-        [Z]
-        [N]
-[M]     [D]
-[C]     [P]
- 1   2   3
-Finally, one crate is moved from stack 1 to stack 2:
-
-        [Z]
-        [N]
-        [D]
-[C] [M] [P]
- 1   2   3
-The Elves just need to know which crate will end up on top of each stack;
-in this example, the top crates are C in stack 1, M in stack 2, and Z in stack 3,
-so you should combine these together and give the Elves the message CMZ.
-
-After the rearrangement procedure completes, what crate ends up on top of each stack?
+Usage example:
+    Advent_of_Code_2022 $ python day05_supply_stack.py day05_test.txt day05_input.txt
 """
-
+import sys
+import itertools
+import collections
 import re
+from typing import *
 
-initial_stacks, movements = [], []
-crate_pattern = re.compile("\[(?P<letter>[A-Z])\]")
-move_pattern = re.compile("move (?P<n>[\d]+) from (?P<from>[1-9]) to (?P<to>[1-9])")
+Stacks = dict[int, list[str]]
+Movement = collections.namedtuple('Movement', ['n', 'from_stack', 'to_stack'])
+CRATE_PATTERN = re.compile("\[(?P<letter>[A-Z])\]")
+MOVE_PATTERN = re.compile("move (?P<n>[\d]+) from (?P<from>[1-9]) to (?P<to>[1-9])")
 
-# Read the input file and store the initial stack configuration data and movements data separately
-with open('day05_input.txt', 'r') as f:
-    for line in f:
-        if line != '\n':
-            initial_stacks.append(line.strip('\n'))
-        else:
-            break
-    for line in f:
-        if line != '\n':
-            movements.append(line.strip())
 
-# Parse the stacks data
-n_stacks = int(initial_stacks.pop().split( )[-1])
-stacks = {i + 1: [] for i in range(n_stacks)}
-for stack_line in initial_stacks[::-1]:
-    stack = stack_line.replace(' '*5, ' [!] ').split(' ')
-    for i, crate in enumerate(stack):
-        crate_letter = re.match(crate_pattern, crate)
-        if crate_letter is not None:
-            stacks[i+1].append(crate_letter.group('letter'))
+def parse_stacks(stack_layers: list[str]) -> Stacks:
+    """
+    Parse the list of strings into a mapping of stacks listing the stack items from bottom up
+    and return the data as Stacks object.
+    """
+    indices = stack_layers[-1]  # you need to use this function for part 2, so don't pop
+    stacks = collections.defaultdict(
+        list,
+        {int(index): [] for index in indices.split(' ') if index}
+    )
+    no_crate, blank_crate = ' ' * 4, '[!] '
+    for layer in reversed(stack_layers[:-1]):
+        crates: list[str] = layer.replace(no_crate, blank_crate).split(' ')
+        for i, crate in enumerate(crates):
+            crate_letter = re.match(CRATE_PATTERN, crate)
+            if crate_letter:
+                stacks[i+1].append(crate_letter.group('letter'))
+    return stacks
 
-# Parse the movement data and move crates
-for move in movements:
-    matched = re.match(move_pattern, move)
-    n, from_crate, to_crate = \
-        int(matched.group('n')), \
-        int(matched.group('from')), \
-        int(matched.group('to'))
-    for _ in range(n):
-        crate = stacks[from_crate].pop()
-        stacks[to_crate].append(crate)
 
-print(f"The letters on the top of the stacks are {''.join(stack[-1] for stack in stacks.values())}.")
+def parse_instructions(instructions: list[str]) -> Iterator[Movement]:
+    """
+    Given a list of movement statements, parse each statement by matching MOVE_PATTERN
+    and extracting the matched groups.
+    Yield the tuple of matched substrings as Movement object.
+    """
+    for line in instructions:
+        matched = re.match(MOVE_PATTERN, line)
+        yield Movement(int(matched.group('n')), int(matched.group('from')), int(matched.group('to')))
 
-"""
-The CrateMover 9001 is notable for many new and exciting features: 
-air conditioning, leather seats, an extra cup holder, and the ability to pick up and move multiple crates at once.
 
-Again considering the example above, the crates begin in the same configuration:
+def parse(txt_filename: str) -> tuple[list[str], list[str]]:
+    """
+    The file content is a 2d view of stacks, an empty line break, and a sequence of movements.
+    Use itertools.takewhile() to split the file content into before and after the empty line break (without including the line break).
+    """
+    with open(txt_filename, 'r') as f:
+        it = iter(f.readlines())
+        stack_layers = [
+            line.strip('\n')
+            for line in itertools.takewhile(lambda line: line != '\n', it)
+            ]
+        instructions = [
+            line.strip() for line in it
+        ]
+    return stack_layers, instructions
 
-    [D]    
-[N] [C]    
-[Z] [M] [P]
- 1   2   3 
-Moving a single crate from stack 2 to stack 1 behaves the same as before:
 
-[D]        
-[N] [C]    
-[Z] [M] [P]
- 1   2   3 
-However, the action of moving three crates from stack 1 to stack 3 means 
-that those three moved crates stay in the same order, resulting in this new configuration:
+def solve_part1(initial_stack_layers: list[str], instructions: list[str]) -> str:
+    """
+    Move the crates according to the instructions. Crates can only be moved one at a time.
+    """
+    stacks = parse_stacks(initial_stack_layers)
+    for move in parse_instructions(instructions):
+        for _ in range(move.n):
+            crate = stacks[move.from_stack].pop()
+            stacks[move.to_stack].append(crate)
+    return ''.join(
+        stack.pop() for stack in stacks.values()
+    )
 
-        [D]
-        [N]
-    [C] [Z]
-    [M] [P]
- 1   2   3
-Next, as both crates are moved from stack 2 to stack 1, they retain their order as well:
 
-        [D]
-        [N]
-[C]     [Z]
-[M]     [P]
- 1   2   3
-Finally, a single crate is still moved from stack 1 to stack 2, but now it's crate C that gets moved:
+def solve_part2(initial_stack_layers: list[str], instructions: list[str]) -> str:
+    """
+    Move the crates according to the instructions.
+    Multiple crates are moved at once, but when they are replaced to another stack,
+    they retain the same order they were stacked in the original stack.
+    """
+    stacks = parse_stacks(initial_stack_layers)
+    for move in parse_instructions(instructions):
+        stacks[move.from_stack], crates = stacks[move.from_stack][:-move.n], stacks[move.from_stack][-move.n:]
+        stacks[move.to_stack].extend(crates)
+    return ''.join(
+        stack.pop() for stack in stacks.values()
+    )
 
-        [D]
-        [N]
-        [Z]
-[M] [C] [P]
- 1   2   3
-In this example, the CrateMover 9001 has put the crates in a totally different order: MCD.
 
-Before the rearrangement process finishes, 
-update your simulation so that the Elves know where they should stand to be ready to unload the final supplies. 
+if __name__ == '__main__':
+    title = 'Day 05: Supply Stacks'
+    print(title.center(50, '-'))
 
-After the rearrangement procedure completes, what crate ends up on top of each stack?
-"""
-
-# Parse the stacks data
-stacks = {i + 1: [] for i in range(n_stacks)}
-for stack in initial_stacks[::-1]:
-    for i, crate in enumerate(stack.replace(' '*5, ' [!] ').split(' ')):
-        crate_letter = re.match(crate_pattern, crate)
-        if crate_letter is not None:
-            stacks[i+1].append(crate_letter.group('letter'))
-
-# Parse the movement data and move crates
-for move in movements:
-    matched = re.match(move_pattern, move)
-    n, from_crate, to_crate = \
-        int(matched.group('n')), \
-        int(matched.group('from')), \
-        int(matched.group('to'))
-    stacks[from_crate], target = stacks[from_crate][:-n], stacks[from_crate][-n:]
-    stacks[to_crate].extend(target)
-
-print(f"The letters on the top of the stacks are {''.join(stack[-1] for stack in stacks.values())}.")
+    for path in sys.argv[1:]:
+        data = parse(path)
+        part1 = solve_part1(*data)
+        part2 = solve_part2(*data)
+        print(f"""{path}:
+        Part 1: The crates that end up at the top of the stacks are {part1}.
+        Part 2: The crates that end up at the top of the stacks are {part2}.
+        """)
