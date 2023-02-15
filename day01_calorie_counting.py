@@ -1,81 +1,53 @@
 """
 --- Day 1: calorie counting ---
 
-The Elves take turns writing down the number of Calories contained by the various meals, snacks, rations, etc.
-that they've brought with them, one item per line.
-Each Elf separates their own inventory from the previous Elf's inventory (if any) by a blank line.
-
-For example, suppose the Elves finish writing their items' Calories and end up with the following list:
-
-1000
-2000
-3000
-
-4000
-
-5000
-6000
-
-7000
-8000
-9000
-
-10000
-This list represents the Calories of the food carried by five Elves:
-
-The first Elf is carrying food with 1000, 2000, and 3000 Calories, a total of 6000 Calories.
-The second Elf is carrying one food item with 4000 Calories.
-The third Elf is carrying food with 5000 and 6000 Calories, a total of 11000 Calories.
-The fourth Elf is carrying food with 7000, 8000, and 9000 Calories, a total of 24000 Calories.
-The fifth Elf is carrying one food item with 10000 Calories.
-In case the Elves get hungry and need extra snacks, they need to know which Elf to ask:
-they'd like to know how many Calories are being carried by the Elf carrying the most Calories.
-In the example above, this is 24000 (carried by the fourth Elf).
-
-Find the Elf carrying the most Calories. How many total Calories is that Elf carrying?
+Usage example:
+    Advent_of_Code_year_2022 $ python day01.py day01_test.txt day01_input.txt
 """
+import sys
+import pathlib
+import itertools
 
-with open('day01_input.txt', 'r') as f:
-    most_calories = 0
-    elf = []
-    for line in f:
-        if line != '\n':
-            elf.append(int(line.strip()))
-        else:
-            if sum(elf) > most_calories:
-                most_calories = sum(elf)
-            elf = []
-print(f'The elf carrying the most calories is carrying {most_calories:,} Calories.')
 
-"""
-By the time you calculate the answer to the Elves' question, 
-they've already realized that the Elf carrying the most Calories of food might eventually run out of snacks.
+def parse(txt_filename: str | pathlib.Path) -> list[str]:
+    with open(txt_filename, 'r') as f:
+        return f.read().splitlines()
 
-To avoid this unacceptable situation, the Elves would instead like to know 
-the total Calories carried by the top three Elves carrying the most Calories. 
-That way, even if one of those Elves runs out of snacks, they still have two backups.
 
-In the example above, the top three Elves are the fourth Elf (with 24000 Calories), 
-then the third Elf (with 11000 Calories), 
-then the fifth Elf (with 10000 Calories). 
-The sum of the Calories carried by these three elves is 45000.
+def solve_part1(data: list[str]) -> int:
+    """
+    Group the lines and sum the lines converted into integers.
+    Return the largest sum.
+    """
+    return max(
+        sum(int(calories) for calories in sack)
+        for is_elf, sack in itertools.groupby(data, key=lambda l: l != '')
+        if is_elf
+    )
 
-Find the top three Elves carrying the most Calories. How many Calories are those Elves carrying in total?
-"""
 
-with open('day01_input.txt', 'r') as f:
-    bundles = []
-    bundle = []
-    for line in f:
-        if line != '\n':
-            bundle.append(int(line.strip()))
-        else:
-            bundles.append(sum(bundle))
-            bundle = []
+def solve_part2(data: list[str]) -> int:
+    """
+    Do the same as part1() but return the total of the top 3 largest sums.
+    """
+    bundles: list[int] = [
+        sum(int(calories) for calories in sack)
+        for is_elf, sack in itertools.groupby(data, key=lambda l: l != '')
+        if is_elf
+    ]
     bundles.sort(reverse=True)
-    top3_total = sum(bundles[0:3])
-print(bundles)
-print(f"The total calories carried by the top 3 elves is {top3_total:,} Calories.")
+    return sum(bundles[:3])
 
+
+if __name__ == "__main__":
+    title = 'Day 01: calorie counting'
+    print(title.center(50, '-'))
+    for path in sys.argv[1:]:
+        print(f"{path}:")
+        puzzle_input = parse(pathlib.Path(path))
+        part1 = solve_part1(puzzle_input)
+        part2 = solve_part2(puzzle_input)
+        print(f'Part 1: The most amount of calories carried by an elf is {part1}.')
+        print(f'Part 2: The total calories carried by the top three elves is {part2}.')
 
 
