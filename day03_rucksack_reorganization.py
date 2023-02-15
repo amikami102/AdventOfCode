@@ -1,90 +1,76 @@
 """
--- Day 04 rucksack reorganization ---
-The list of items for each rucksack is given as characters all on a single line. A given rucksack always has the same number of items in each of its two compartments, so the first half of the characters represent items in the first compartment, while the second half of the characters represent items in the second compartment.
+-- Day 03: Rucksack Reorganization --
 
-For example, suppose you have the following list of contents from six rucksacks:
-
-vJrwpWtwJgWrhcsFMMfFFhFp
-jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
-PmmdzqPrVvPwwTWBwg
-wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
-ttgJtRGJQctTZtZT
-CrZsJsPPZsGzwwsLwLmpwMDw
-
-The first rucksack contains the items vJrwpWtwJgWrhcsFMMfFFhFp, which means its first compartment contains the items
-vJrwpWtwJgWr,
-while the second compartment contains the items
-hcsFMMfFFhFp.
-The only item type that appears in both compartments is lowercase p.
-The second rucksack's compartments contain
-jqHRNqRjqzjGDLGL
-and
-rsFMfFZSrLrFZsSL.
-The only item type that appears in both compartments is uppercase L.
-The third rucksack's compartments contain PmmdzqPrV and vPwwTWBwg; the only common item type is uppercase P.
-The fourth rucksack's compartments only share item type v.
-The fifth rucksack's compartments only share item type t.
-The sixth rucksack's compartments only share item type s.
-To help prioritize item rearrangement, every item type can be converted to a priority:
-
-Lowercase item types a through z have priorities 1 through 26.
-Uppercase item types A through Z have priorities 27 through 52.
-
-In the above example, the priority of the item type that appears in both compartments of each rucksack is
-16 (p), 38 (L), 42 (P), 22 (v), 20 (t), and 19 (s); the sum of these is 157.
-
-Find the item type that appears in both compartments of each rucksack.
-What is the sum of the priorities of those item types?
+Usage example
+    Advent_of_Code_2022 $ python day03_rucksack_reorganization.py day03_test.py day03_input.txt
 """
+import sys
 import string
+import itertools
+import pathlib
+from typing import *
 
-priority_lookup = {
+T = TypeVar('T')
+
+PRIORITY_LEVEL: dict[str, int] = {
     letter: val + 1
     for val, letter in enumerate([*string.ascii_lowercase, *string.ascii_uppercase])
 }
 
-priorities = []
-with open('day03_input.txt', 'r') as f:
-    for rucksack in f:
-        first, second = set(rucksack[:len(rucksack) // 2]), set(rucksack[len(rucksack) // 2:])
-        common = first.intersection(second).pop()
-        priorities.append(priority_lookup[common])
 
-print(f'The sum of priorities is {sum(priorities):,}.')
+def parse(txt_filename: str | pathlib.Path) -> list[str]:
+    """
+    Return a list of strings.
+    e.g. ['abAB', 'cdCO', ...]
+    """
+    with open(txt_filename, 'r') as f:
+        return f.read().splitlines()
 
-"""
-Every set of three lines in your list corresponds to a single group, 
-but each group can have a different badge item type.
-So, in the above example, the first group's rucksacks are the first three lines:
 
-vJrwpWtwJgWrhcsFMMfFFhFp
-jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
-PmmdzqPrVvPwwTWBwg
-And the second group's rucksacks are the next three lines:
+def solve_part1(rucksacks: list[str]) -> int:
+    """
+    Split each rucksack in equal-length compartments.
+    Find the item (str) that appear in both compartments.
+    Return the sum of the integers representing the overlapping items of each rucksack's compartments.
+    """
+    out: int = 0
+    for rucksack in rucksacks:
+        first, second = rucksack[:len(rucksack) // 2], rucksack[len(rucksack) // 2:]
+        item = set(first).intersection(set(second)).pop()
+        out += PRIORITY_LEVEL[item]
+    return out
 
-wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
-ttgJtRGJQctTZtZT
-CrZsJsPPZsGzwwsLwLmpwMDw
-In the first group, the only item type that appears in all three rucksacks is lowercase r; this must be their badges. 
-In the second group, their badge item type must be Z.
 
-Priorities for these items must still be found to organize the sticker attachment efforts: 
-here, they are 18 (r) for the first group and 52 (Z) for the second group. The sum of these is 70.
+def solve_part2(rucksacks: list[str]) -> int:
+    """
+    Group rucksacks into groups of three and find the item common to all three in the group.
+    Return the sum of the priority levels of the groups' common items.
+    """
 
-Find the item type that corresponds to the badges of each three-Elf group. 
-What is the sum of the priorities of those item types?
-"""
+    def grouper(iterable: Iterable[T], n: int, fillvalue: T = None) -> Iterator:
+        """
+        Group an iterable into groups of size n.
+        e.g. 'ABCDEFG' will be grouped into 'AB','CD','EF', 'G' if fillvalue is None.
+        """
+        args = [iter(iterable)] * n
+        return itertools.zip_longest(*args, fillvalue=fillvalue)
 
-import itertools
-
-badges = []
-with open('day03_input.txt', 'r') as f:
-    args = [iter(f)] * 3  # inspired by "grouper" function recipe on itertools doc
-    for group in itertools.zip_longest(*args, fillvalue=None):
+    out: int = 0
+    for group in grouper(rucksacks, n=3):
         first, second, third = group
-        common = set(first.strip()) \
-            .intersection(set(second.strip())) \
-            .intersection(set(third.strip())).pop()
-        badges.append(priority_lookup.get(common, 0))
+        badge = set(first).intersection(set(second)).intersection(set(third)).pop()
+        out += PRIORITY_LEVEL[badge]
+    return out
 
-print(f'The sum of the priorities is {sum(badges):,}.')
+
+if __name__ == '__main__':
+    title = 'Day 03: Rucksack Reorganization'
+    print(title.center(50, '-'))
+    for path in sys.argv[1:]:
+        data = parse(path)
+        part1 = solve_part1(data)
+        part2 = solve_part2(data)
+        print(f"""{path}:
+        Part 1: The sum of the priority levels is {part1}.
+        Part 2: The sum of the priority levels of the badge items is {part2}.
+        """)
