@@ -1,221 +1,133 @@
 """
-30373
-25512
-65332
-33549
-35390
+-- Day 08: Treetop Tree House --
 
-Each tree is represented as a single digit whose value is its height, where 0 is the shortest and 9 is the tallest.
-
-A tree is visible if all the other trees between it and an edge of the grid are shorter than it.
-Only consider trees in the same row or column; that is, only look up, down, left, or right from any given tree.
-
-All the trees around the edge of the grid are visible -
-since they are already on the edge, there are no trees to block the view.
-In this example, that only leaves the interior nine trees to consider:
-
-The top-left 5 is visible from the left and top.
-    (It isn't visible from the right or bottom since other trees of height 5 are in the way.)
-The top-middle 5 is visible from the top and right.
-The top-right 1 is not visible from any direction;
-    for it to be visible, there would need to only be trees of height 0 between it and an edge.
-The left-middle 5 is visible, but only from the right.
-The center 3 is not visible from any direction;
-    for it to be visible, there would need to be only trees of at most height 2 between it and an edge.
-The right-middle 3 is visible from the right.
-In the bottom row, the middle 5 is visible, but the 3 and 4 are not.
-
-With 16 trees visible on the edge and another 5 visible in the interior,
-ßa total of 21 trees are visible in this arrangement.
-
-Consider your map; how many trees are visible from outside the grid?
+Usage example:
+    Advent_of_Code_2022 $ python day08_treetop_tree_house.py day08_test.txt day08_input.txt
 """
-
-from pprint import pprint
+import sys
+import math
 import collections
-import itertools
+from typing import *
 
-tree_tuple = collections.namedtuple('tree_tuple', ['row', 'column', 'height'])
-visible_set = set()
+T = TypeVar('T')
 
-with open('day08_input.txt', 'r') as f:
-    forest = collections.deque(
-        collections.deque(
-            tree_tuple(r, c, int(height))
-            for c, height in enumerate(line.strip())
+DIRECTIONS4 = Up, Down, Right, Left = (-1, 0), (1, 0), (0, 1), (0, -1)
+Coord = collections.namedtuple('Coord', ['row', 'column'])
+Forest = collections.defaultdict[Coord, int]
+
+
+def parse(txt_filename: str) -> Forest:
+    """
+    Parse the lines of integers into a list of Tree objects.
+    """
+    forest = collections.defaultdict(int)
+    with open(txt_filename, 'r') as f:
+        for row, line in enumerate(f.read().splitlines()):
+            for column, height in enumerate(line):
+                forest[Coord(row, column)] = int(height)
+    return forest
+
+
+def _move_in_direction(here: Coord, forest: Forest, direction: tuple[int, int]) -> Iterator[Coord]:
+    """Starting from here, move in the direction through the forest"""
+    drow, dcol = direction
+    while True:
+        here = Coord(here.row + drow, here.column + dcol)
+        if here not in forest:
+            return None
+        else:
+            yield here
+
+
+def solve_part1(forest: Forest) -> int:
+    """
+    Count the number of trees that are visible from at least one of the DIRECTIONS4.
+    """
+    def _is_visible_from_direction(ref_tree: Coord, ref_height: int, direction: tuple[int, int]) -> bool:
+        """
+        A tree in the forest is visible from a direction if
+        all the trees in the line of that direction are shorter than the tree of reference.
+        Any tree in line that is taller than the tree of sight will block the reference tree when the forest is viewed from that direction.
+        """
+        return all(
+            ref_height > forest[tree_in_line]
+            for tree_in_line in _move_in_direction(ref_tree, forest, direction)
         )
-        for r, line in enumerate(f.readlines())
+
+    return len(
+        list(
+            filter(
+                lambda tree: any(
+                    _is_visible_from_direction(*tree, direction)
+                    for direction in DIRECTIONS4
+                ),
+                forest.items()
+            )
+        )
     )
 
-top, bottom = forest.popleft(), forest.pop()
-visible_set.update(top)
-visible_set.update(bottom)
-top.pop()
-top.popleft()
-bottom.popleft()
-bottom.pop()
-left, right = collections.deque(line.popleft() for line in forest), \
-              collections.deque(line.pop() for line in forest)
-visible_set.update(left)
-visible_set.update(right)
-data = sorted(itertools.chain(*forest), key=lambda tree: tree.column)
 
-for edge, row in zip(left, forest):
-    highest = edge.height
-    for tree in row.copy():
-        if tree.height > highest:
-            highest = tree.height
-            row.remove(tree)
-            visible_set.add(tree)
+def before_and_after(predicate: Callable[T, bool], it: Iterable[T]) -> tuple[Iterator[T], Iterator[T]]:
+    """
+    Returns two iterator where the first one contains the first half of iterable until the predicate fails and the second is the rest of the iterable.
+    """
+    it = iter(it)
+    transition = []
 
-for edge, row in zip(right, forest):
-    highest = edge.height
-    row_from_right = collections.deque(reversed(row))
-    for tree in row_from_right:
-        if tree.height > highest:
-            highest = tree.height
-            row.remove(tree)
-            visible_set.add(tree)
-
-forest_rearranged = \
-    collections.deque(
-        collections.deque(g)
-        for _, g in itertools.groupby(data, key=lambda tree: tree.column)
-    )
-
-for edge, column in zip(top, forest_rearranged):
-    highest = edge.height
-    for tree in column.copy():
-        if tree.height > highest:
-            highest = tree.height
-            column.remove(tree)
-            visible_set.add(tree)
-
-for edge, column in zip(bottom, forest_rearranged):
-    highest = edge.height
-    column_from_bottom = collections.deque(reversed(column.copy()))
-    for tree in column_from_bottom:
-        if tree.height > highest:
-            highest = tree.height
-            column.remove(tree)
-            visible_set.add(tree)
-
-pprint(f'{len(visible_set):,} trees are visible from outside the grid.')  # 1693
-
-"""
-To measure the viewing distance from a given tree, look up, down, left, and right from that tree; 
-stop if you reach an edge or at the first tree that is the same height or taller than the tree under consideration. 
-(If a tree is right on the edge, at least one of its viewing distances will be zero.)
-
-The Elves don't care about distant trees taller than those found by the rules above; 
-the proposed tree house has large eaves to keep it dry, 
-so they wouldn't be able to see higher than the tree house anyway.
-
-In the example above, consider the middle 5 in the second row:
-
-30373
-25512
-65332
-33549
-35390
-
-Looking up, its view is not blocked; it can see 1 tree (of height 3).
-Looking left, its view is blocked immediately; it can see only 1 tree (of height 5, right next to it).
-Looking right, its view is not blocked; it can see 2 trees.
-Looking down, its view is blocked eventually; it can see 2 trees 
-    (one of height 3, then the tree of height 5 that blocks its view).
-
-A tree's scenic score is found by multiplying together its viewing distance in each of the four directions. 
-For this tree, this is 4 (found by multiplying 1 * 1 * 2 * 2).
-
-However, you can do even better: consider the tree of height 5 in the middle of the fourth row:
-
-30373
-25512
-65332
-33549
-35390
-
-Looking up, its view is blocked at 2 trees (by another tree with a height of 5).
-Looking left, its view is not blocked; it can see 2 trees.
-Looking down, its view is also not blocked; it can see 1 tree.
-Looking right, its view is blocked at 2 trees (by a massive tree of height 9).
-
-This tree's scenic score is 8 (2 * 2 * 1 * 2); this is the ideal spot for the tree house.
-
-Consider each tree on your map. What is the highest scenic score possible for any tree?
-"""
-
-tree_tuple = collections.namedtuple('tree_tuple', ['row', 'column', 'height', 'scores'])
-
-with open('day08_input.txt', 'r') as f:
-    data = [
-        tree_tuple(r, c, int(height), [])
-        for r, line in enumerate(f)
-        for c, height in enumerate(line.strip())
-    ]
-    data.sort(key=lambda tree: tree.row)
-
-# score from the left
-forest = collections.deque(
-    collections.deque(g)
-    for _, g in itertools.groupby(data, key=lambda tree: tree.row)
-)
-data.sort(key=lambda tree: tree.column)
-forest_transposed = collections.deque(
-    collections.deque(g)
-    for _, g in itertools.groupby(
-        data,
-        key=lambda tree: tree.column
-    )
-)
-nrows, ncols = len(forest) - 1, len(forest_transposed) - 1
-fforest = forest.copy()
-
-
-def score_from_side(direction: str) -> None:
-    """Score trees from `direction`"""
-    if direction in ('top', 'bottom'):
-        def key(t):
-            return t.column
-    else:
-        def key(t):
-            return t.row
-
-    data.sort(key=key)
-    grid = collections.deque(
-        collections.deque(g)
-        for _, g in itertools.groupby(data, key=key)
-    )
-
-    for line in grid:
-        if direction == 'right' or direction == 'bottom':
-            line.reverse()
-        line_of_sight = collections.deque([line[0]])
-        for tree in line:
-            if (tree.column == 0) or (tree.column == ncols) or (tree.row == 0) or (tree.row == nrows):
-                score = 0
+    def true_iterator() -> Iterator[T]:
+        for elem in it:
+            if predicate(elem):
+                yield elem
             else:
-                score = 0
-                for adj in line_of_sight:
-                    score += 1
-                    if adj.height >= tree.height:
-                        break
-                line_of_sight.appendleft(tree)
-            new_scores = fforest[tree.row][tree.column].scores + [score]
-            fforest[tree.row][tree.column] = tree._replace(scores=new_scores)
+                transition.append(elem)
+                return
+
+    def remainder_iterator() -> Iterator[T]:
+        yield from transition
+        yield from it
+
+    return true_iterator(), remainder_iterator()
 
 
-score_from_side('left')
-score_from_side('right')
-score_from_side('top')
-score_from_side('bottom')
-pprint(fforest)
+def solve_part2(forest: Forest) :
+    """
+    Return the highest scenic score possible in this forest.
+    """
+
+    def _scenic_score(ref_coord: Coord, ref_height: int, direction: tuple[int, int]) -> int:
+        """
+        Return the scenic score of the tree located at ref_coord.
+        A ref_tree can see a tree if the tree is not taller than ref_tree['height'].
+        """
+        shorter, equal_or_taller = before_and_after(
+            lambda tree_in_line: ref_height > forest[tree_in_line],
+            _move_in_direction(ref_coord, forest, direction)
+        )
+        match len(list(shorter)), next(equal_or_taller, None):
+            case 0, None:
+                return 0
+            case 0, last_tree if last_tree:
+                return 1 if ref_height <= forest[last_tree] else 0
+            case _ as n, None:
+                return n
+            case _ as n, last_tree if last_tree:
+                return n + (1 if ref_height <= forest[last_tree] else 0)
+
+    return max(
+        math.prod(_scenic_score(*tree, direction) for direction in DIRECTIONS4)
+        for tree in forest.items()
+    )
 
 
-max_score = 1
-for tree in itertools.chain(*fforest):
-    final = tree.scores[0] * tree.scores[1] * tree.scores[2] * tree.scores[3]
-    if final > max_score:
-        max_score = final
-print(f'The highest visibility score is {max_score}.')
+if __name__ == '__main__':
+    title = 'Day 08: Treetop Tree House'
+    print(title.center(50, '-'))
+
+    for path in sys.argv[1:]:
+        data = parse(path)
+        part1 = solve_part1(data)
+        part2 = solve_part2(data)
+        print(f"""{path}:
+        Part 1: The number of trees visible from outside the grid are {part1}.
+        Part 2: The highest scenic score in this forest grid is {part2}.
+        """)
