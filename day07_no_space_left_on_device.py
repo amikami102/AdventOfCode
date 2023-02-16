@@ -1,92 +1,98 @@
 """
-Within the terminal output, lines that begin with $ are commands you executed, very much like some modern computers:
+-- Day 07: No Space Left on Device
 
-cd means change directory. This changes which directory is the current directory, but the specific result depends on the argument:
-    cd x moves in one level: it looks in the current directory for the directory named x and makes it the current directory.
-    cd .. moves out one level: it finds the directory that contains the current directory, then makes that directory the current directory.
-    cd / switches the current directory to the outermost directory, /.
-ls means list. It prints out all files and directories immediately contained by the current directory:
-    123 abc means that the current directory contains a file named abc with size 123.
-    dir xyz means that the current directory contains a directory named xyz.
-
-Find all directories with a total size of at most 100000.
-What is the sum of the total sizes of those directories?
+Usage example:
+    Advent_of_Code_2022 $ python day07_no_space_left_on_device.py day07_test.txt day07_input.txt
 """
-from collections import defaultdict
-import pprint
+import sys
+import collections
+import itertools
 import re
 
-cd_pattern = re.compile('^\$ cd (?P<dir>\S+)$')
-ls_pattern = re.compile('^\$ ls$')
-file_pattern = re.compile('^(?P<filesize>\d+) (?P<filename>\S+)$')
-dir_pattern = re.compile('^dir (?P<dir>\w+)$')
-max_size = 100000
+CD_PATTERN = re.compile(r'^\$ cd (?P<dir>\S+)$')
+LS_PATTERN = re.compile(r'^\$ ls$')
+FILE_PATTERN = re.compile(r'^(?P<filesize>\d+) (?P<filename>\S+)$')
+DIR_PATTERN = re.compile(r'^dir (?P<dir>\w+)$')
 
-directory_sizes = defaultdict(int)
-path = []
 
-# Build a dictionary of directory paths
-with open('day07_input.txt', 'r') as f:
-    for line in f:
-        if line.startswith('$ cd'):
-            dir = re.match(cd_pattern, line).group('dir')
-            if dir == '/':
-                path = ['/']
-            elif dir == '..':
-                path.pop()
-            else:
-                path.append(dir)
-        elif line.startswith('$ ls'):
+
+def parse(txt_filename: str) -> list[str]:
+    """
+    Return a list of strings.
+    """
+    with open(txt_filename, 'r') as f:
+        return f.read().splitlines()
+
+
+def _walk(commands: list[str]) -> dict[str, int]:
+    """
+    Return a mapping of directory to the total of their content file sizes.
+    The commands walk down a tree until it reaches an end of a branch before it backtracks to the last fork
+    that leads to another unopened branch.
+    * Assume that the same directory is never opened twice.
+    * Assume that there can be the same directory name can be used in different parent folders.
+    """
+    directory_sizes: dict[str, int] = collections.defaultdict(int)
+    branch_path = collections.deque(['/'])
+    for command in commands:
+        if command.startswith('$ cd'):
+            dirname = re.match(CD_PATTERN, command).group('dir')
+            match dirname:
+                case '/':
+                    branch_path = collections.deque(['/'])
+                case '..':
+                    branch_path.pop()
+                case _:
+                    branch_key = '/'.join((branch_path[-1], dirname))
+                    branch_path.append(branch_key)
+                    directory_sizes[branch_key] += 0
+        elif command.startswith('$ ls') or command.startswith('dir'):
+            # don't do anything
             continue
         else:
-            if line.startswith('dir'):
-                continue
-            else:
-                file = re.match(file_pattern, line)
-                filesize = int(file.group('filesize'))
+            for key in branch_path:
+                directory_sizes[key] += int(re.match(FILE_PATTERN, command).group('filesize'))
+    return directory_sizes
 
-                for i in range(len(path)):
-                    dirpath = '/'.join(path[:i+1])
-                    directory_sizes.setdefault(dirpath, 0)
-                    directory_sizes[dirpath] += filesize
 
-total = sum(v for v in directory_sizes.values() if v <= max_size)
-print(f'The sum of directory sizes less than {max_size:,} is {total:,}.')
+def solve_part1(puzzle_input: list[str]) -> int:
+    """
+    The puzzle input is the terminal commands, which will be passed into _walk() to
+    get a mapping of directories and their content file sizes.
+    Return the sum of sizes of directories whose total size is at most MAX_SIZE.
+    """
+    directory_sizes = _walk(puzzle_input)
+    MAX_SIZE: int = 100000
+    return sum(size for size in directory_sizes.values() if size <= MAX_SIZE)
 
-"""
-The total disk space available to the filesystem is 70000000. 
-To run the update, you need unused space of at least 30000000. 
-You need to find a directory you can delete that will free up enough space to run the update.
 
-In the example above, the total size of the outermost directory (and thus the total amount of used space) is 48381165; 
-this means that the size of the unused space must currently be 21618835, 
-which isn't quite the 30000000 required by the update. 
-Therefore, the update still requires a directory with total size of at least 8381165 to be deleted before it can run.
+def solve_part2(puzzle_input: list[str]) -> int:
+    """
+    Like solve_part1(), get a mapping of directory paths and their content file sizes
+    by passing the puzzle input into _walk().
+    Return the size of the smallest directory that would free up enough space so that
+    the disk can meet the required unused space out of the total disk space.
+    """
+    directory_sizes = _walk(puzzle_input)
+    TOTAL, REQUIRED_UNUSED = 70000000, 30000000
+    min_dir_to_delete = REQUIRED_UNUSED - (TOTAL - directory_sizes['/'])
+    return min(
+        itertools.filterfalse(
+            lambda v: v < min_dir_to_delete,
+            directory_sizes.values()
+        )
+    )
 
-To achieve this, you have the following options:
 
-Delete directory e, which would increase unused space by 584.
-Delete directory a, which would increase unused space by 94853.
-Delete directory d, which would increase unused space by 24933642.
-Delete directory /, which would increase unused space by 48381165.
+if __name__ == '__main__':
+    title = 'Day 07: No Space Left on Device'
+    print(title.center(50, '-'))
 
-Directories e and a are both too small; deleting them would not free up enough space. 
-However, directories d and / are both big enough! 
-Between these, choose the smallest: d, increasing unused space by 24933642.
-
-Find the smallest directory that, if deleted, would free up enough space on the filesystem to run the update. 
-What is the total size of that directory?
-"""
-print(directory_sizes)
-
-available, required_unused = 70000000, 30000000
-current_unused = available - (directory_sizes['/'])
-print(current_unused)
-
-min_dir = directory_sizes['/']
-for d, v in directory_sizes.items():
-    if current_unused + v > required_unused and v < min_dir:
-        min_dir = v
-
-print(min_dir)
-print(current_unused + min_dir > required_unused)
+    for path in sys.argv[1:]:
+        data = parse(path)
+        part1 = solve_part1(data)
+        part2 = solve_part2(data)
+        print(f"""{path}:
+        Part 1: The size of the largest directory that is at most 100000 is {part1}.
+        Part 2: The size of the smallest directory that would free up enough space to meet the required unused disk space is {part2}.
+        """)
