@@ -1,69 +1,96 @@
 """
-addx V
-    takes two cycles to complete. After two cycles, the X register is increased by the value V.
-    (V can be negative.)
-noop
-    takes one cycle to complete. It has no other effect.
+-- Day 10: Cathode Ray Tube --
 
-Find the signal strength during the 20th, 60th, 100th, 140th, 180th, and 220th cycles.
-What is the sum of these six signal strengths?
----
-Cycle, start X, end X, executing
-1, 1, 1, noop
-2, 1, 1, addx
-3, 1, 1 + 3 = 4, addx
-4, 4, 4, addx -5
-5, 4, 4 + (-5) = -1, addx
+Usag example:
+    Advent_of_Code_2022 $ python day10_cathode_ray_tube.py day10_test.txt day10_input.txt
 """
-from pprint import pprint
-import re
+import sys
+import functools
 import itertools
+from typing import *
 
-addx_pattern = re.compile(r"^addx (?P<value>-?\d+)$")
-
-cycles = []
-with open('day10_input.txt', 'r') as f:
-    c, X = 0, 1
-    for line in f:
-        matched = re.match(addx_pattern, line.strip())
-        if matched is None:
-            c += 1
-            cycles.append((X, X))
-        else:
-            cycles.append((X, X))
-            end = X + int(matched.group('value'))
-            cycles.append((X, end))
-            X = end
-
-total_strength = 0
-for i, cycle in enumerate(cycles):
-    if i+1 in [20, 60, 100, 140, 180, 220]:
-        print(cycle)
-        total_strength += (i+1) * cycle[0]
-pprint(total_strength)
-
-"""
-Part 2
-"""
+SCREEN_WIDTH: int = 40
+LIT, DARK = '#', '.'
+ADDX = 'addx'
 
 
-def draw_pixel(position: int, X: int) -> str:
+def parse(txt_filename: str) -> list[list[str]]:
+    separator = functools.partial(str.split, sep=' ')
+    with open(txt_filename, 'r') as f:
+        return list(
+                map(separator, f.read().splitlines())
+            )
+
+
+def _execute_program(commands: list[list[str]]) -> Iterator[int]:
     """
-    Draw '#' if the sprite covers the pixel position of current cycle
-    and '.' otherwise.
+    Yield the register of X during the cycle,
+    i.e. when X is updated at the end of the cycle by addx command,
+    the updated X appears in the next iteration.
     """
-    sprite = {X-1, X, X + 1}
-    width = 40
-    return '#' if position % width in sprite else '.'
+    X: int = 1
+    yield X
+    for command in commands:
+        op, *args = command
+        if op == ADDX:
+            yield X
+            X += int(args[0])
+        yield X
 
 
-pixels = []
-for i, cycle in enumerate(cycles):
-    X_start, X_end = cycle
-    pixel = draw_pixel(i, X_start)
-    pixels.append(pixel)
+def solve_part1(puzzle_input: list[list[str]]) -> int:
+    """
+    Execute the program by feeding the puzzle input to _execute_program.
+    Add the X register during the cycle multiplied by the cycle number for
+    cycles in `range(20, 220+1, 40)`.
+    Cycles start counting from 1.
+    """
+    return sum(
+        i * cycle for i, cycle in enumerate(_execute_program(puzzle_input), start=1)
+        if i in range(20, 220 + 1, 40)
+    )
 
-width = 40
-lines = [iter(pixels)] * width
-for line in zip(*lines):
-    print(''.join(itertools.chain(*line)))
+
+def _draw_pixel(position: int, X: int) -> str:
+    """
+    Return LIT if mod(position, SCREEN_WIDTH) is in (X-1, X, X+1), otherwise DARK.
+    """
+    return LIT if position % SCREEN_WIDTH in (X-1, X, X+1) else DARK
+
+
+def solve_part2(puzzle_input: list[list[str]]) -> str:
+    """
+    Like part1, feed the puzzle_input into _execute_program().
+    Draw pixels according to the cycle number and the X register during the cycle.
+    Format the pixels to fit in the screen width.
+    """
+    pixels = [
+        _draw_pixel(i, X)
+        for i, X in enumerate(_execute_program(puzzle_input))
+    ]
+    lines = [iter(pixels)] * SCREEN_WIDTH
+    return '\n'.join(
+        ''.join(itertools.chain(*line))
+        for line in zip(*lines)
+    )
+#
+#
+
+# width = 40
+# lines = [iter(pixels)] * width
+# for line in zip(*lines):
+#     print(''.join(itertools.chain(*line)))
+
+
+if __name__ == '__main__':
+    title = 'Day 10: Cathode Ray Tube'
+    print(title.center(50, '-'))
+
+    for path in sys.argv[1:]:
+        data = parse(path)
+        part1 = solve_part1(data)
+        part2 = solve_part2(data)
+        print(f"""{path}:
+        Part 1: The total strength of the six cycles is {part1}.
+        Part 2: The letters displayed on the screen are\n{part2}.
+        """)
