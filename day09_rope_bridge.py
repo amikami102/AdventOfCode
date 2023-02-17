@@ -20,8 +20,6 @@ DIRECTIONS: dict[str, Coord] = {
     'D': Coord(1, 0)
 }
 
-Movement = collections.namedtuple('Movement', ['direction', 'n'])
-
 
 def parse(txt_filename: str) -> list[tuple[str, int]]:
     with open(txt_filename, 'r') as f:
@@ -38,7 +36,7 @@ def _add_coords(coord1: Coord, coord2: Coord) -> Coord:
     return Coord(coord1.row + coord2.row, coord1.column + coord2.column)
 
 
-def _write_head_history(commands: list[Movement]) -> list[Coord]:
+def _write_head_history(commands: list[tuple[str, int]]) -> list[Coord]:
     """Write the history of Head knot"""
     history = [ZERO]
     for move in commands:
@@ -66,8 +64,7 @@ def _update_tail_coord(tail: Coord, head: Coord) -> Coord:
 
 def solve_part1(puzzle_input: list[tuple[str, int]]):
     """
-    Count the number of coordinates the tail visits as its coordinate is
-    updated by the head's movement.
+    Count the number of coordinates the tail visits as its coordinate is updated by the head's movement.
     """
     head_history = _write_head_history(puzzle_input)
     tail_history = [ZERO]
