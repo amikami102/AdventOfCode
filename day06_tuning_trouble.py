@@ -1,5 +1,8 @@
 """
 -- Day 06: Tuning Trouble --
+
+Usage example:
+    Advent_of_Code/year2022 $ python day06_tuning_trouble.py day06_test.txt day06_input.txt
 """
 import sys
 from typing import *

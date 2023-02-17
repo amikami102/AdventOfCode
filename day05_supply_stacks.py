@@ -2,7 +2,7 @@
 -- Day 05: Supply Stack --
 
 Usage example:
-    Advent_of_Code_2022 $ python day05_supply_stack.py day05_test.txt day05_input.txt
+    Advent_of_Code_/year022 $ python day05_supply_stack.py day05_test.txt day05_input.txt
 """
 import sys
 import itertools

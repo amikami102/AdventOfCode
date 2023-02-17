@@ -2,7 +2,7 @@
 -- Day 07: No Space Left on Device
 
 Usage example:
-    Advent_of_Code_2022 $ python day07_no_space_left_on_device.py day07_test.txt day07_input.txt
+    Advent_of_Code/year2022 $ python day07_no_space_left_on_device.py day07_test.txt day07_input.txt
 """
 import sys
 import collections
@@ -13,7 +13,6 @@ CD_PATTERN = re.compile(r'^\$ cd (?P<dir>\S+)$')
 LS_PATTERN = re.compile(r'^\$ ls$')
 FILE_PATTERN = re.compile(r'^(?P<filesize>\d+) (?P<filename>\S+)$')
 DIR_PATTERN = re.compile(r'^dir (?P<dir>\w+)$')
-
 
 
 def parse(txt_filename: str) -> list[str]:

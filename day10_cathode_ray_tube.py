@@ -2,7 +2,7 @@
 -- Day 10: Cathode Ray Tube --
 
 Usag example:
-    Advent_of_Code_2022 $ python day10_cathode_ray_tube.py day10_test.txt day10_input.txt
+    Advent_of_Code/year2022 $ python day10_cathode_ray_tube.py day10_test.txt day10_input.txt
 """
 import sys
 import functools

@@ -2,7 +2,7 @@
 -- Day 08: Treetop Tree House --
 
 Usage example:
-    Advent_of_Code_2022 $ python day08_treetop_tree_house.py day08_test.txt day08_input.txt
+    Advent_of_Code/year2022 $ python day08_treetop_tree_house.py day08_test.txt day08_input.txt
 """
 import sys
 import math

@@ -2,7 +2,7 @@
 -- Day 4 camp cleanup --
 
 Usage example
-    Advent_of_Code_2022 $ python day04_camp_cleanup.py day04_test.txt day04_input.txt
+    Advent_of_Code/year2022 $ python day04_camp_cleanup.py day04_test.txt day04_input.txt
 """
 import sys
 import itertools

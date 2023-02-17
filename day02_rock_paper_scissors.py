@@ -2,7 +2,7 @@
 --- Day 2: rock, paper, scissors ---
 
 Usage example
-    Advent_of_Code_2022 $ python day02_rock_paper_scissors.py day02_test.txt day02_input.txt
+    Advent_of_Code/year2022 $ python day02_rock_paper_scissors.py day02_test.txt day02_input.txt
 """
 import sys
 import pathlib

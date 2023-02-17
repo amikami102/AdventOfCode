@@ -2,13 +2,12 @@
 -- Day 09: Rope Bridge --
 
 Usage example:
-    Advent_of_Code_2022 $ python day09_rope_bridge.py day09_test.txt day09_input.txt
+    Advent_of_Code/year2022 $ python day09_rope_bridge.py day09_test.txt day09_input.txt
 """
 import sys
 import itertools
 import collections
 from typing import *
-from dataclasses import dataclass
 
 T = TypeVar('T')
 Coord = collections.namedtuple('Coord', ['row', 'column'])

@@ -2,7 +2,7 @@
 --- Day 1: calorie counting ---
 
 Usage example:
-    Advent_of_Code_year_2022 $ python day01.py day01_test.txt day01_input.txt
+    Advent_of_Code/year2022 $ python day01.py day01_test.txt day01_input.txt
 """
 import sys
 import pathlib
