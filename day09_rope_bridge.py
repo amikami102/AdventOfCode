@@ -1,90 +1,105 @@
 """
-Simulate your complete hypothetical series of motions.
-How many positions does the tail of the rope visit at least once?
+-- Day 09: Rope Bridge --
+
+Usage example:
+    Advent_of_Code_2022 $ python day09_rope_bridge.py day09_test.txt day09_input.txt
 """
-from pprint import pprint
+import sys
 import itertools
 import collections
-from typing import Iterable, Iterator, Tuple
+from typing import *
+from dataclasses import dataclass
+
+T = TypeVar('T')
+Coord = collections.namedtuple('Coord', ['row', 'column'])
+ZERO = Coord(0, 0)
+DIRECTIONS: dict[str, Coord] = {
+    'R': Coord(0, 1),
+    'L': Coord(0, -1),
+    'U': Coord(-1, 0),
+    'D': Coord(1, 0)
+}
+
+Movement = collections.namedtuple('Movement', ['direction', 'n'])
 
 
-class knot:
-    def __init__(self, label):
-        self.x, self.y = 0, 0
-        self.label = label
-        self.history = []
-
-    def write_history(self):
-        self.history.append((self.x, self.y))
-
-
-Head, Tail = knot('head'), knot('tail')
+def parse(txt_filename: str) -> list[tuple[str, int]]:
+    with open(txt_filename, 'r') as f:
+        return [
+            (
+                line.split(' ')[0],
+                int(line.split(' ')[1])
+            )
+            for line in f.read().splitlines()
+        ]
 
 
-def update_tail_coord(tail_knot: knot, *head_coord) -> None:
+def _add_coords(coord1: Coord, coord2: Coord) -> Coord:
+    return Coord(coord1.row + coord2.row, coord1.column + coord2.column)
+
+
+def _write_head_history(commands: list[Movement]) -> list[Coord]:
+    """Write the history of Head knot"""
+    history = [ZERO]
+    for move in commands:
+        direction, n = move
+        history.extend([DIRECTIONS[direction]] * n)
+    return list(itertools.accumulate(history, _add_coords))
+
+
+def _update_tail_coord(tail: Coord, head: Coord) -> Coord:
     """
-    Given the coordinates of the head, update the tail's coordinates so that it is touching the head.
+    Return the vector the tail needs to move so that the tail is touching the head.
     """
-    x, y = head_coord
-    x_distance = x - tail_knot.x
-    y_distance = y - tail_knot.y
-
-    if abs(x_distance) <= 1 and abs(y_distance) <= 1:
-        tail_knot.x += 0
-        tail_knot.y += 0
-    elif abs(x_distance) > 1 or abs(y_distance) > 1:
-        #print(tail_knot.history)
-        #raise ValueError(f'The head ({x, y}) moved too fast from the tail ({tail_knot.x, tail_knot.y})')
-    #elif abs(x_distance) > 1 >= abs(y_distance) or abs(y_distance) > 1 >= abs(x_distance):
-        tail_knot.x += 1 * int(x_distance/abs(x_distance)) if x_distance != 0 else 0
-        tail_knot.y += 1 * int(y_distance/abs(y_distance)) if y_distance != 0 else 0
+    drow, dcol = (head.row - tail.row), (head.column - tail.column)
+    if abs(drow) <= 1 and abs(dcol) <= 1:
+        return tail
+    elif abs(drow) > 1 or abs(dcol) > 1:
+        return _add_coords(
+            tail,
+            Coord(
+                1 * int(drow/abs(drow)) if drow != 0 else 0,
+                1 * int(dcol/abs(dcol)) if dcol != 0 else 0
+            )
+        )
 
 
-with open('day09_input.txt', 'r') as f:
-    Head.history.append((Head.x, Head.y))
-    for line in f:
-        direction, steps = line.strip().split(' ')[0], int(line.strip().split(' ')[1])
-        for i in range(steps):
-            if direction == 'R':
-                Head.x += 1
-            elif direction == 'L':
-                Head.x -= 1
-            elif direction == 'U':
-                Head.y += 1
-            else:
-                Head.y -= 1
-            Head.write_history()
+def solve_part1(puzzle_input: list[tuple[str, int]]):
+    """
+    Count the number of coordinates the tail visits as its coordinate is
+    updated by the head's movement.
+    """
+    head_history = _write_head_history(puzzle_input)
+    tail_history = [ZERO]
+    for coord in head_history:
+        tail_history.append(_update_tail_coord(tail_history[-1], coord))
+    return len(set(tail_history))
 
 
-for coord in Head.history:
-    update_tail_coord(Tail, *coord)
-    Tail.write_history()
-
-print(f'The tail visits {len(set(Tail.history))} positions.')
-
-"""
-Same rules but there are 9 knots after the head.
-
-How many positions does the tail of the rope visit at least once?
-"""
-
-knots = [Head, *(knot(str(i+1)) for i in range(9))]
-
-
-def sliding_window(iterable: Iterable, n: int) -> Iterator:
-    it = iter(iterable)
-    window = collections.deque(itertools.islice(it, n), maxlen=n)
-    if len(window) == n:
-        yield tuple(window)
-    for elem in it:
-        window.append(elem)
-        yield tuple(window)
+def solve_part2(puzzle_input: list[tuple[str, int]]):
+    """
+    Same as part 1, but now there are nine tail knots.
+    Count the number of coordinates visited by the 9th tail knot.
+    """
+    head_history = _write_head_history(puzzle_input)
+    knots = (head_history, *([ZERO] for _ in range(9)))
+    for (header_history, tailer_history) in itertools.pairwise(knots):
+        for coord in header_history:
+            tailer_history.append(
+                _update_tail_coord(tailer_history[-1], coord)
+            )
+    return len(set(knots[-1]))
 
 
-for pair in sliding_window(knots, 2):
-    header, tailer = pair
-    for coord in header.history:
-        update_tail_coord(tailer, *coord)
-        tailer.write_history()
+if __name__ == '__main__':
+    title = 'Day 09: Rope Bridge'
+    print(title.center(50, '-'))
 
-print(f'The tail visits {len(set((knots[-1].history)))} positions at least once.')
+    for path in sys.argv[1:]:
+        data = parse(path)
+        part1 = solve_part1(data)
+        part2 = solve_part2(data)
+        print(f"""{path}:
+        Part 1: The tail visits {part1} different locations at least once.
+        Part 2: The ninth tail visits {part2} different locations at least once.
+        """)
