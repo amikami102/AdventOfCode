@@ -5,6 +5,8 @@ Usage example:
     Advent_of_Code/year2022 $ python day14_regolith_reservoir.py day14_test.txt day14_input.txt
 
 A tricky aspect of grids in Advent of Code is that sometimes the navigation is physical, (row, column), while others it's Cartesian, (x, y), which is what Day 14 uses. However, the y is inverted axis where y increases as you go "down" instead of "up."
+
+Inspired by Peter Norvig's solution to only add grid coordinate to the Grid dictionary if the cell value is either a rock ('#') or a sand particle that has come to rest ('o').
 """
 import sys
 from typing import *
@@ -97,11 +99,18 @@ def _simulate(grid: Grid, lay_floor: bool = False):
 
 
 def solve_part1(puzzle_input: list[RockPath]) -> int:
+    """
+    Place the rocks on the paths by feeding the puzzle_input into _place_rocks().
+    Simulate the sand falling by running _simulate() on default args.
+    """
     grid = _place_rocks(Grid(directions=DIRECTIONS), puzzle_input)
     return _simulate(grid)
 
 
 def solve_part2(puzzle_input: list[RockPath]) -> int:
+    """
+    The same as part 1, but run _simulate() with the argument lay_floor set to False.
+    """
     grid = _place_rocks(Grid(directions=DIRECTIONS), puzzle_input)
     return _simulate(grid, lay_floor=True)
 
