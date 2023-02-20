@@ -1,91 +1,91 @@
 """
---- Day 13: Distress Signal ---
+-- Day 13: Distress Signal --
+
+Usage example
+    Advent_of_Code/year2022 $ python day13_distress_signal.py day13_test.txt day13_input.txt
+
+Inspired by Peter Norvig for the elegant comparison and sorting
 """
-
-import itertools
-import collections
+import sys
 import json
-from pprint import pprint
-from typing import Iterator, Iterable, Sequence
+import pathlib
+import math
+import functools
+import itertools
+from typing import *
+
+Packet = list
 
 
-def compare(left: Iterable, right: Iterable) -> bool:
-    for l, r in itertools.zip_longest(left, right, fillvalue=None):
-        if isinstance(l, int) and isinstance(r, int):
-            if l > r:
-                return False
-            elif l < r:
-                return True
-            else:
-                continue
-        elif (l is None) or (r is None):
-            if r is None:
-                return False
-            else:
-                return True
-        elif isinstance(r, int) and isinstance(l, Iterable):
-            return compare(l, [r])
-        elif isinstance(l, int) and isinstance(r, Iterable):
-            return compare([l], r)
-        else:
-            return compare(l, r)
-    return True
-
-
-with open('day13_input.txt', 'r') as f:
-    pairs = [
-        [
-            iter(json.loads(packet))
-            for packet in pair.split('\n')
-        ]
-        for pair in f.read().split('\n\n')
+def parse(txt_filename: str) -> list[tuple[Any, ...]]:
+    return [
+        tuple(json.loads(packet) for packet in pair.split('\n'))
+        for pair in pathlib.Path(txt_filename).read_text().split('\n\n')
     ]
 
-sum_of_indices = sum(
-    i+1 for i, pair in enumerate(pairs)
-    if compare(*pair)
-)
-print(f'The sum of indices of pairs that are in order is {sum_of_indices}.')
 
-
-def bubblesort(arr: list) -> list:
+def _compare(left: list | int, right: list | int) -> int:
     """
-    Implements bubble sort algorithm.
+    Compare the items according to the rules.
+    Since the packets are lists, the very first pass through this function is
+    actually the list vs list comparison. This is the part that implements the first-nonzero pass rule.
+    It is also why this function returns the difference between the integer values instead of a boolean value.
     """
-    loop_size = len(arr) - 1
-    no_swaps = True
+    match isinstance(left, int), isinstance(right, int):
+        case True, True:
+            return left - right
+        case False, True:
+            return _compare(left, [right])
+        case True, False:
+            return _compare([left], right)
+        case False, False:
+            return next(
+                filter(lambda x: x, map(_compare, left, right)),
+                False
+            ) or len(left) - len(right)
 
-    for i in range(loop_size):
-        for j in range(loop_size - i):
-            if compare(arr[j], arr[j + 1]):
-                continue
-            else:
-                arr[j], arr[j+1] = arr[j+1], arr[j]
-                no_swaps = False
-        if no_swaps:
-            return arr
-    return arr
+
+def _right_order(packets: tuple[Packet, Packet]) -> bool:
+    """
+    Pass the input packets into _compare() and return True if the output of _compare() is negative or zero, which only happens if the packets are identical.
+    """
+    return _compare(*packets) <= 0
 
 
-with open('day13_input.txt', 'r') as f:
-    packets = [
-        json.loads(packet)
-        for pair in f.read().split('\n\n')
-        for packet in pair.split('\n')
-    ]
+def solve_part1(puzzle_input: list[tuple[Packet, Packet]]) -> int:
+    """
+    Given a list of pair of packets, sum the indices of pairs
+    whose items are in the right order.
+    """
+    return sum(
+        i
+        for i, pair in enumerate(puzzle_input, 1)
+        if _right_order(pair)
+    )
 
-packets_sorted = bubblesort(packets)
 
-for divider in ([[2]], [[6]]):
-    if compare(divider, packets_sorted[0]):
-        packets_sorted.insert(0, divider)
-        continue
-    for left, right in itertools.pairwise(packets_sorted):
-        if compare(left, divider) and compare(divider, right):
-            idx = packets_sorted.index(right)
-            packets_sorted.insert(idx, divider)
-            break
+def solve_part2(puzzle_input: list[tuple[Packet]]) -> int:
+    """
+    Unpair the packets and sort them according to the comparison rule.
+    Insert the divider packets ([[2]] and [[6]]) in their appropriate place. Return the product of the indices of the divider packets in the sorted sequence.
+    """
+    dividers = [[2]], [[6]]
+    ordered = sorted(
+        list(itertools.chain.from_iterable(puzzle_input)) + list(dividers),
+        key=functools.cmp_to_key(_compare)
+    )
+    return math.prod(ordered.index(d) + 1 for d in dividers)
 
-dividers_index_prod = (packets_sorted.index([[2]]) + 1) *(packets_sorted.index([[6]]) + 1)
 
-print(f'The product of divider indices is {dividers_index_prod}.')
+if __name__ == '__main__':
+    title = 'Day 13: Distress Signal'
+    print(title.center(50, '-'))
+
+    for path in sys.argv[1:]:
+        data = parse(path)
+        part1 = solve_part1(data)
+        part2 = solve_part2(data)
+        print(f"""{path}:
+        Part 1: The sum of the indices of packets that are paired in the right order is {part1}.
+        Part 2: The product of the indices of divider packets is {part2}.
+        """)
