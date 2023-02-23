@@ -73,13 +73,6 @@ def solve_part2(puzzle_input: list[list[str]]) -> str:
         ''.join(itertools.chain(*line))
         for line in zip(*lines)
     )
-#
-#
-
-# width = 40
-# lines = [iter(pixels)] * width
-# for line in zip(*lines):
-#     print(''.join(itertools.chain(*line)))
 
 
 if __name__ == '__main__':
