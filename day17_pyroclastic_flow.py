@@ -1,173 +1,208 @@
 """
 -- Day 17: Pyroclastic Flow --
 
-Inspired by
-    - (very short code that uses hashing)
-     https://github.com/juanplopes/advent-of-code-2022/blob/6794122df32a857827e0c49871e848afe62cff18/day17.py
+Usage example:
+    Advent_of_Code/year2022 $ python day17_pyroclastic_flow.py day17_test.txt day17_input.txt
 
-    - (for a state hashing that's more elegant thant u/juanplopes's) https://www.reddit.com/r/adventofcode/comments/znykq2/comment/j0oa5tu/?utm_source=share&utm_medium=web2x&context=3
+Inspired by this very fast solution, https://www.reddit.com/r/adventofcode/comments/znykq2/comment/j0vj0l2/?utm_source=share&utm_medium=web2x&context=3
 
-    - (the most eloquent that uses caching and simulates the rock falling as an overlap between the previous state of the tower
-    without the rock and the current state of the tower with the rock)
-    https://github.com/Kamik423/advent-of-code-2022/blob/main/17.py
+Part 1 can be solved by simulating N=2022 rocks falling through the tower, but this method doesn't work for part 2 where N=1_000_000_000_000. The code is written to solve both parts with the same set of functions.
 
-    - (on caching) https://antonz.org/functools-cache/
+To solve part 2 efficiently, assume that repeating through the same sequence of jets and five rocks in the same order will create a cycle.
+The parameters we need in order to compute the final height are
+    - the length of the cycle (`period`);
+    - the last index before the first period begins;
+    - the amount the tower grows per cycle (`delta_height`).
 
-    - (the most simple but eloquent)
-    https://www.reddit.com/r/adventofcode/comments/znykq2/comment/j0vj0l2/?utm_source=share&utm_medium=web2x&context=3
+The cycle will be determined while simulating the tetris process. During the simulation, we will keep track of the following data each simulation round.
+    - the rock index (0, 1, 2, 3, or 4)
+    - the jet index (0, 1, ..., J)
+    - the leftmost row index where the indexed rock that has stopped moving (0, 1, 2, ..., 6)
+    - the height of the tower
+
+
 """
-from typing import Iterable, Iterator
+import sys
+import pathlib
 import collections
 import itertools
+import functools
+from dataclasses import dataclass
+from typing import *
 
-INITIAL_OFFSET_LEFT: int = 2
-INITIAL_OFFSET_TOP: int = 3
+Coord = tuple[int, int]  # (x, y)
+Vector = Coord
+Rock = set[Coord]
+
 CHAMBER_WIDTH: int = 7
+X_OFFSET, Y_OFFSET = 2, 4
+X, Y = 0, 1
+DIRECTIONS = Left, Right, Down = (-1, 0), (1, 0), (0, 1)
+ARROWS: dict[str, Vector] = {'>': Right, '<': Left, 'v': Down}
 
 
-def convert_to_int(shape: list[str]) -> list[int]:
+def _add_vectors(vector1: Vector, vector2: Vector) -> Vector:
+    return vector1[X] + vector2[X], vector1[Y] + vector2[Y]
+
+
+def _slide(coords: Iterable[Coord], dx: int = 0, dy: int = 0) -> set[Coord]:
     """
-    Convert the string representation of the shape of the rock into an integer representation
-    of the bitarray of the rock as it first appears at the top of the tower.
-    e.g. '1111' becomes '0011110' becomes 0b0011110.
+    Slide the coords horizontally dx units and vertically dy units.
     """
-    return [
-        int(line.ljust(CHAMBER_WIDTH, '0'), 2)
-        for line in shape
-    ]
+    return set(map(lambda coord: _add_vectors(coord, (dx, dy)), coords))
 
 
-Rock = list[int, ...]
-innerChamber: list[int] = []
-heightSequence: list[int] = []
-Rounds = collections.defaultdict(list)
-dxSequence: list[int] = []
-lastIndexBeforeFirstPeriod: int = 0
-periodLength: int = 0
-deltaHeightPerPeriod: int = 0
-
-
-def fits(cur_rock: Rock, dx: int, depth: int) -> bool:
+def _shape(*lines) -> Rock:
     """
-    This function is encountered only when dy > 0.
-    Check whether the rock can be transposed by dx units in the x direction
-        by confirming that rock >> dx << dx keeps the original rock shape intact.
-        - If rock >> dx spills over the chamber width, the original shape cannot be recovered by << dx.
-            This tells us that the rock shouldn't be shifted by dx units.
-        - It starts with >> because the rock must be right-shifted INITIAL_OFFSET_LEFT units when it
-        first appears.
-        - Not in this function, but dx will be an integer within [0, 7] because you can't right-shift by negative units and the most distance that the leftmost 1 can be shifted is 7 units.
-    Check whether the rock can be transposed by dx units laterally AND dy units down
-        by confirming that the j-th row from the bottom of the chamber has no intersection with (j-dy)th row of the Rock.
-        - dy represents the number of rows from the bottom of the chamber where the Rock's bottom row will be placed if this move works.
-        - The condition is not triggered if len(Chamber) == 0 because range(dy, 0) returns an empty iterator
-            or if len(Chamber) > 0 but len(Chamber) < y because range(y, len(Chamber)) returns an empty iterator.
-        - The condition is triggered for the first time when the iterator is non-empty,
-            i.e. when y = len(chamber) - 1. This is when we're testing whether the bottom of the Rock can pass
-           the topmost row of the Chamber. In that case, the iterator is range(y, y+1).
-
-        Here's what's happening visually when dy = len(chamber) - 1, dx=0, for a '-'-shaped rock.
-        chamber[len(chamber) - 1]   |...#...|       |..####...|     rock[0]     j = len(chamber) - 1
-                                        ...
-        chamber[2]                  |..###..|
-        chamber[1]                  |...#...|
-        chamber[0]                  |..####.|
-                                    +-------+
-        - Once the Rock passes the topmost row of the len(Chamber), i.e. y < len(Chamber) - 1,
-            we want to check the portion of the Rock that overlaps with the Chamber, which
-            might stop short of the topmost row of the Chamber, hence min(len(Chamber), y + len(Rock)).
-
-        Here's what's happening visually when dy = len(chamber) - 2, dx = 0, for a square rock.
-        chamber[len(chamber) - 1]   |#......|       |..##...|   rock[1]     j = len(chamber) - 1
-        chamber[len(chamber) - 2]   |#......|       |..##...|   rock[0]     j = len(chamber) - 2
-                                        ...
-        chamber[2]                  |..###..|
-        chamber[1]                  |...#...|
-        chamber[0]                  |..####.|
-                                    +-------+
-        Here's what's happening visually when dy = 3, dx = 0, for a square rock.
-        chamber[len(chamber) - 1]   |#......|
-                                        ...
-        chamber[4]                  |......#|       |..##...|   rock[1]     j = 4 = dy + len(rock) - 1
-        chamber[3]                  |......#|       |..##...|   rock[0]     j = 3
-        chamber[2]                  |..###..|
-        chamber[1]                  |...#...|
-        chamber[0]                  |..####.|
-                                    +-------+
-
+    Extract the coordinates of '#' characters in successive lines
+    depicting a rock top down.
+    e.g. '.####' becomes [(0,1), (0,2), (0, 3), (0,4)]
     """
-    if not (depth > 0 and 0 <= dx <= 7):
-        assert ValueError('dy and dx out of bounds')
-    lateral_shift_keeps_rock_intact: bool = all(line >> dx << dx == line for line in cur_rock)
-    lateral_shift_and_drop_has_no_intersection: bool = not any(
-        innerChamber[j] & cur_rock[j - depth] >> dx
-        for j in range(
-            depth,
-            min(len(innerChamber), depth + len(cur_rock))
-        )
-    )
-    return lateral_shift_keeps_rock_intact and lateral_shift_and_drop_has_no_intersection
+    return {
+        (x, y)
+        for y, line in enumerate(lines)
+        for x, value in enumerate(line)
+        if value == '#'
+    }
 
 
-def compute_final_height(n_rocks: int):
+ROCKS: list[Rock] = [
+    _shape('####'),
+    _shape('.#.', '###', '.#.'),
+    _shape(
+        '..#',
+        '..#',
+        '###'
+    ),  # note that the lines are listed top down
+    _shape('#', '#', '#', '#'),
+    _shape('##', '##')
+]
+FLOOR = _shape('#' * CHAMBER_WIDTH)
+
+
+class Tower(set):
+    def __init__(self):
+        super().__init__(set() | FLOOR)
+
+    def rock_appears(self, rock: Rock) -> Rock:
+        """
+        Place the bottom of the rock at the top of the tower when it first appears.
+        1. Slide the rock up `min(layer[Y] for layer in tower)` units
+            so that the top of the rock (the coordinates with y = 0) is at the top of the tower.
+        3. Slide the rock up `max(layer[Y] for layer in rock)` units
+            so that the bottom of the rock is sitting at the top of the tower.
+        4. Slide up so that there are 3 units between the top of the tower and the bottom of the rock.
+        """
+        dy = min(layer[Y] for layer in self) \
+            - max(layer[Y] for layer in rock) \
+            - Y_OFFSET
+        return _slide(rock, X_OFFSET, dy)
+
+    def move_rock(self, rock: Rock, arrow: str) -> Rock:
+        """
+        Move the rock in the direction specified by `arrow`.
+        Return the original rock if the rock hits the wall or hits any coordinate in `tower`; otherwise, return the moved rock.
+        """
+        rock_if = _slide(rock, *ARROWS[arrow])
+        return rock if any(
+                coord[X] not in range(CHAMBER_WIDTH)
+                or coord in self
+                for coord in rock_if
+            ) else rock_if
+
+
+def _simulate(rock_idx: int, rock: Rock, tower: Tower, jets: Iterator[tuple[int, str]]) -> tuple[int, ...]:
     """
-    As soon as periodLength variable is nonzero, this function will be triggered to
-    determine the final height of innerChamber after n_rocks have fallen through the chamber.
+    Simulate the rock falling through the tower until it stops.
     """
-    n_periods, remainder = divmod(n_rocks - lastIndexBeforeFirstPeriod, periodLength)
-    return deltaHeightPerPeriod * n_periods + \
-        heightSequence[(lastIndexBeforeFirstPeriod + remainder) - 1]
-
-
-ROCKS: list[Rock] = list(
-    map(
-        lambda list_of_str: convert_to_int(list_of_str),
-        [
-            ['1111'],  # '-' shape
-            ['010', '111', '010'],  # '+' shape
-            ['111', '001', '001'],  # reverse 'L' shape
-            ['1'] * 4,  # 'l' shape
-            ['11'] * 2  # 2x2 square shape
-        ]
-    )
-)
-
-with open('day17_input.txt', 'r') as f:
-    jets = f.read().strip()
-
-rock_cycler: Iterator[list] = itertools.cycle(enumerate(ROCKS))
-jet_cycler: Iterator[str] = itertools.cycle(enumerate(jets))
-
-while not periodLength:
-    rock_index, rock = next(rock_cycler)
-    dx, depth = 2, len(innerChamber) + 4
-    jet_index, jet = None, None
-    while depth and fits(rock, dx, depth - 1):
-        depth -= 1
-        jet_index, jet = next(jet_cycler)
-        new_dx = max(0, dx - 1) if jet == '<' else min(7, dx + 1)
-        dx = new_dx if fits(rock, new_dx, depth) else dx
-
-    for j, rock_line in enumerate(rock, start=depth):
-        if j < len(innerChamber):
-            innerChamber[j] |= rock_line >> dx
+    rock0 = tower.rock_appears(rock)
+    x_left = X_OFFSET
+    while True:
+        jet_idx, jet = next(jets)
+        rock1 = tower.move_rock(rock0, jet)
+        rock0 = tower.move_rock(rock1, 'v')
+        if rock0 == rock1:
+            # the rock couldn't move down after being jetted
+            tower |= rock0
+            break
         else:
-            innerChamber.append(rock_line >> dx)
-    heightSequence.append(len(innerChamber))
-    dxSequence.append(dx)
-    Rounds[(rock_index, jet_index)].append(len(dxSequence))
+            # update the leftmost index of the rock
+            x_left = min(point[X] for point in rock0)
+    height = abs(min(layer[Y] for layer in tower))
+    return rock_idx, jet_idx, x_left, height
 
-    *previous, current_round = tuple(Rounds[rock_index, jet_index])
-    """
-        The following will be triggered when you have a third round added to Rounds[repeating_index]
-        and returns nothing if you fail to determine the repeating_index is the beginning of a period.
-    """
-    for b, m in itertools.combinations(previous, 2):
-        if abs(b - m) == abs(m - current_round) and dxSequence[b:m] == dxSequence[m:]:
-            lastIndexBeforeFirstPeriod, periodLength, deltaHeightPerPeriod = \
-               b - 1, \
-               abs(m - b), \
-               len(innerChamber) - heightSequence[m - 1]
 
-print('part 1: ', compute_final_height(2022))
-print('part 2: ', compute_final_height(1000000000000))
+@dataclass
+class PeriodicSequence:
+    period: int = 0
+    heights: list[int] = 0
+    index_before_first_period: int = 0
+
+    def compute_final_height(self, n_rocks: int) -> int:
+        """
+        Compute the final height of the tower after n_rocks have been dropped down the tower.
+        """
+        # determine how many periods there are in n_rocks
+        n_periods, remainder = divmod(n_rocks - self.index_before_first_period, self.period)
+        # determine the amount of growth per period
+        delta_height = self.heights[self.index_before_first_period + self.period] - \
+            self.heights[self.index_before_first_period]
+        return self.heights[self.index_before_first_period + remainder - 1] + \
+            delta_height * n_periods
+
+
+def _determine_period(jets: str, max_rocks: int = 2022) -> PeriodicSequence | None:
+    out = PeriodicSequence()
+    visited: dict[tuple[int, int], list[int]] = collections.defaultdict(list)
+    terms, heights = [], []
+
+    tower: Tower = Tower()
+    rock_cycler = itertools.cycle(enumerate(ROCKS))
+    jet_cycler = itertools.cycle(enumerate(jets))
+    rounds = itertools.count()
+
+    while not out.period:
+        rock_idx, rock = next(rock_cycler)
+        *state, x_left, height = _simulate(rock_idx, rock, tower, jet_cycler)
+        visited[tuple(state)].append(next(rounds))
+        terms.append(x_left)
+        heights.append(height)
+
+        *previous, last = visited[tuple(state)]
+        for period1_start, period2_start in itertools.combinations(previous, 2):
+            length, period = \
+                abs(period1_start - period2_start),\
+                terms[period1_start: period2_start]
+            if length == abs(period2_start - last) and period == terms[period2_start: last]:
+                out.period = length
+                out.heights = heights
+                out.index_before_first_period = period1_start - 1
+                return out
+    return
+
+
+def parse(txt_filename: str) -> str:
+    """Return the content of the file as string."""
+    return pathlib.Path(txt_filename).read_text()
+
+
+def _solve(puzzle_input: str, n_rocks: int) -> int:
+    periodic_sequence = _determine_period(puzzle_input)
+    return periodic_sequence.compute_final_height(n_rocks)
+
+
+solve_part1 = functools.partial(_solve, n_rocks=2022)
+solve_part2 = functools.partial(_solve, n_rocks=1_000_000_000_000)
+
+if __name__ == '__main__':
+    title = 'Day 17: Pyroclastic Flow'
+    print(title.center(50, '-'))
+
+    for path in sys.argv[1:]:
+        data = parse(path)
+        part1 = solve_part1(data)
+        part2 = solve_part2(data)
+        print(f"""{path}:
+        Part 1: The height of the tower after 2022 rocks have stopped falling is {part1}.
+        Part 2: The height of the tower after 1^12 rocks have stopped falling is {part2}.
+        """)
