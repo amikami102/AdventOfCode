@@ -99,8 +99,11 @@ if __name__ == '__main__':
     print(title.center(50, '-'))
 
     for path in sys.argv[1:]:
-        print(f"""{path}""")
+
         data = parse(path)
         part1 = solve_part1(data)
         part2 = solve_part2(data)
-        print(part1, part2)
+        print(f"""{path}:
+        Part 1: The surface area of the scanned lava droplet is {part1}.
+        Part 2: The exterior surface area of the scanned lava droplet is {part2}.
+        """)
