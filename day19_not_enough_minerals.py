@@ -8,6 +8,16 @@ Inspired by Peter Norvig's solution although there are faster solutions.
     - (u/4HbQ although this fundamentally relies on tuning the sorting key function and the threshold count) https://www.reddit.com/r/adventofcode/comments/zpihwi/comment/j0tvzgz/?utm_source=share&utm_medium=web2x&context=3
     - (u/debnet based on above, but more readable and faster due to functools.cache)
     https://www.reddit.com/r/adventofcode/comments/zpihwi/comment/j0vq06m/?utm_source=share&utm_medium=web2x&context=3
+
+The three key ideas to solving the search problem are:
+    - to prioritize building a geo robot over other actions (*);
+    - except for geode crackers, to not built more robots than maximum necessary, which
+        - for obsidian robot is the number of obsidians needed to build 1 geode cracker,
+        - for clay robot is the number of clays needed to build 1 obsidian collector,
+        - for ore robot is the number of ores needed by the robot that needs the most ores;
+    - to prune search states that do not lead to the best known result.
+
+*: Though the solution uses depth-first search, there is some prioritization done by popping out the action that builds a geo robot.
 """
 import sys
 import re
