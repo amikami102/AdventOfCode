@@ -1,44 +1,76 @@
 """
---- Day 20: Grove Positioning System ---
+-- Day 20: Grove Positioning System --
 
-My intuition was similar to this one, so I decided not to do any collections.deque.rotating
-or shifting the indices. https://www.reddit.com/r/adventofcode/comments/zqezkn/comment/j0xumzm/?utm_source=share&utm_medium=web2x&context=3
+Usage example:
+    Advent_of_Code/year2022 $ python day20_grove_positioning_system.py day20_test.txt day20_input.txt
+
+The key idea is to not modify the original list of numbers (`encrypted_file`) and instead mix an alternative list, which is a list of the indices so that if the original list is `n` items long, the list that is being mixed consists of (0, 1, 2, ..., n-1). This is better than mixing a copy of encrypted file because the encrypted file can have duplicate integer values. When you're looking for where the item is in the mixed list, it's better to have a unique identifier so that you're moving the right version of the duplicate integer.
 """
-import itertools
-import collections
-from typing import Iterator, Iterable
-
-with open('day20_input.txt', 'r') as f:
-    encrypted = list(map(int, f))
+import sys
+import pathlib
+import functools
+from typing import *
 
 ZERO = 0
 KEY = 811589153
+OFFSETS = 1000, 2000, 3000
 
 
-def mix(n_mixes: int = 1, decryption_key: int = None):
-    if decryption_key is None:
-        decryption_key = 1
-    decrypted_order = list(range(len(encrypted)))     # [ 0, 1, 2, 3, 4, 5, 6]
-    for _ in range(n_mixes):
-        for i, e in enumerate(encrypted.copy()):
-            if e == 0:
-                continue
-            loc: int = decrypted_order.index(i)     # 0, 1, 2, ..., or 6
-            insertion_loc: int = (loc + e * decryption_key) % (len(encrypted) - 1)
+def _mix(encrypted_file: list[int], repeat: int = 1, decryption_key: int = 1) -> list[int]:
+    """
+    Mix the items listed in `encrypted_file` by moving each item
+    forward or backward by the number of position equal to the integer value of the item.
+    """
+    n = len(encrypted_file)
+    decrypted_order = list(range(n))  # 0, 1, 2, ..., n-1
+    # move the `i`th number in `encrypted_file` from position `l` to `k`
+    for _ in range(repeat):
+        for i, e in enumerate(encrypted_file):
+            loc = decrypted_order.index(i)
             del decrypted_order[loc]
-            decrypted_order.insert(insertion_loc, i) if insertion_loc != 0 else decrypted_order.append(i)
+            match k := (loc + e * decryption_key) % (n - 1):
+                case 0:
+                    decrypted_order.append(i)
+                case _:
+                    decrypted_order.insert(k, i)
 
-    return [encrypted[d] * decryption_key for d in decrypted_order]
+    return [encrypted_file[d] * decryption_key for d in decrypted_order]
 
 
-def find_grove_coordinates(*args) -> int:
-    decrypted = mix(*args)
-    zero_index = decrypted.index(ZERO)
+def _find_grove_coordinates(puzzle_input: list[int], mixer: Callable) -> int:
+    """
+    Find the number at the offset locations after the value 0 in
+    the decrypted file.
+    """
+    decrypted_file = mixer(puzzle_input)
+    zero_index = decrypted_file.index(ZERO)
     return sum(
-        decrypted[(zero_index + n) % len(decrypted)] for n in (1000, 2000, 3000)
+        decrypted_file[(zero_index + n) % len(decrypted_file)]
+        for n in OFFSETS
     )
 
 
-part1 = find_grove_coordinates()
-part2 = find_grove_coordinates(10, KEY)
-print(part1, part2)
+def parse(txt_filename: str) -> list[int]:
+    """Return input file content as a list of integers"""
+    return list(map(int, pathlib.Path(txt_filename).read_text().splitlines()))
+
+
+solve_part1 = functools.partial(_find_grove_coordinates, mixer=_mix)
+solve_part2 = functools.partial(
+    _find_grove_coordinates,
+    mixer=functools.partial(_mix, repeat=10, decryption_key=KEY)
+)
+
+
+if __name__ == '__main__':
+    title = 'Day 20: Grove Positioning System'
+    print(title.center(50, '-'))
+
+    for path in sys.argv[1:]:
+        data = parse(path)
+        part1 = solve_part1(data)
+        part2 = solve_part2(data)
+        print(f"""{path}:
+        Part 1: The sum of the three numbers that form the grove coordinates is {part1}.
+        Part 2: The sum of the three numbers that form the grove coordinates is {part2}.
+        """)
