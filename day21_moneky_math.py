@@ -1,53 +1,86 @@
 """
 -- Day 21: Monkey Math --
 
-Inspired by
-    - (exec() for part 1)
-    https://www.reddit.com/r/adventofcode/comments/zrav4h/comment/j12mwt3/?utm_source=share&utm_medium=web2x&context=3
+Usage example:
+    Advent_of_Code/year2022 $ python day21_monkey_math.py day21_test.txt day21_input.txt
 
-    - u/juanplopes for recursive execution
-    https://github.com/juanplopes/advent-of-code-2022/blob/6794122df32a857827e0c49871e848afe62cff18/day21.py
-
-    - (u/sehyod explains why having 'humn' yell 1j works)
-    https://www.reddit.com/r/adventofcode/comments/zrav4h/comment/j13fuad/?utm_source=share&utm_medium=web2x&context=3
-
-Part 2 requires you to round to the nearest integer, instead of using int(), which defaults to floor rounding.
+The key idea to solving part 1 (without sympy module) is to use recursion.
+For a solution to part 2 that doesn't involve sympy, see this Reddit user's hacky solution that sets
+'humn' monkey's integer to 1j. This is similar to algebraically solving the equation except that the symbol is `j`.
+https://www.reddit.com/r/adventofcode/comments/zrav4h/comment/j13fuad/?utm_source=share&utm_medium=web2x&context=3
+I ultimately adopted using sympy to solve for 'humn' monkey's integer value because the above solution
+relies on the assumption that 'humn''s number is not multiplied by itself.
 """
-from typing import Callable, Any
+import sys
+import pathlib
 import operator
-import re
+import sympy
+from typing import *
+
+OPERATORS: dict[str, Callable] = {
+    '+': operator.add,
+    '-': operator.sub,
+    '*': operator.mul,
+    '/': operator.truediv,
+    '=': sympy.Eq   # used in part 2
+}
+MonkeyJobs = dict[str, tuple[str] | int]
 
 
-OPERATORS: dict[str, Callable] = {'+': operator.add, '-': operator.sub, '*': operator.mul, '/': operator.truediv}
-exprs: dict[str, Any] = {}
-with open('day21_input.txt', 'r') as f:
-    for line in f:
-        monkey, *yellout = re.split(r'[\s:]+', line.strip())
-        exprs.update({monkey: yellout})
-
-
-def recursively_evaluate(monkey: str) -> int:
+def parse(txt_filename: str) -> MonkeyJobs:
     """
-    Recursively evaluate what the monkeys are yelling out.
+    Return the content of the file as a dictionary of monkey names and their jobs.
     """
-    yellout = exprs[monkey]
-    if len(yellout) > 1:
-        m1, op, m2 = yellout
-        return OPERATORS[op](
-            recursively_evaluate(m1),
-            recursively_evaluate(m2)
-        )
+    out: MonkeyJobs = {}
+    for line in pathlib.Path(txt_filename).read_text().splitlines():
+        name, *args = line.replace(':', '').split(' ')
+        out[name] = int(next(iter(args))) if len(args) == 1 else tuple(args)
+    return out
+
+
+def recursively_evaluate(jobs: MonkeyJobs, name: str) -> int:
+    """
+    Recursively evaluate the integer value that is the monkey's job to yell out.
+    """
+    if not isinstance(jobs[name], tuple):
+        return jobs[name]
     else:
-        return complex(yellout[0])
+        m1, op, m2 = jobs[name]
+        return OPERATORS[op](
+            recursively_evaluate(jobs, m1),
+            recursively_evaluate(jobs, m2)
+        )
 
 
-# part 1
-part1 = round(recursively_evaluate('root').real)
-print(part1)
-# part 2
-exprs = exprs | {'humn': [1j]}
-m1, _, m2 = exprs['root']
-exprs = exprs
-lh = recursively_evaluate(m1)
-rh = recursively_evaluate(m2)
-print(round((lh.real-rh.real)/(rh.imag - lh.imag)))
+def solve_part1(puzzle_input: MonkeyJobs) -> int:
+    """Return the integer yelled out by the monkey named 'root'."""
+    return round(recursively_evaluate(puzzle_input, 'root'))
+
+
+def solve_part2(puzzle_input: MonkeyJobs) -> int:
+    """
+    First, update the monkey jobs dictionary by
+        - changing 'root' monkey's operation symbol to '='
+        - changing 'humn' monkey to sympy.Symbol('humn').
+    Return the solution for the integer value of sympy.Symbol('humn') via sympy.solve().
+    """
+    m1, _, m2 = puzzle_input['root']
+    humn = sympy.Symbol('humn')
+    jobs_updated = {**puzzle_input, 'root': (m1, '=', m2), 'humn': humn}
+    return next(iter(sympy.solve(recursively_evaluate(jobs_updated, 'root'), humn)))
+
+
+
+
+if __name__ == '__main__':
+    title = 'Day 21: Monkey Math'
+    print(title.center(50, '-'))
+
+    for path in sys.argv[1:]:
+        data = parse(path)
+        part1 = solve_part1(data)
+        part2 = solve_part2(data)
+        print(f"""{path}:
+        Part 1: The number yelled out by the monkey named 'root' is {part1}.
+        Part 2: The number that I, the monkey named 'humn', have to yell out is {part2}.
+        """)
