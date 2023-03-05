@@ -7,6 +7,7 @@ name = "pypi"
 pandas = "*"
 numpy = '*'
 scipy = "*"
+sympy = '*'
 
 [dev-packages]
 
