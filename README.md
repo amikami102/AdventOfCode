@@ -1,5 +1,3 @@
-# Advent Of Code
-
 ## Description
 
 This is my repository for [Advent of Code (AoC)](https://adventofcode.com/) solutions year by year. I write my solutions in Python and try to only use built-in modules and methods. I borrowed the Python script template from [a *Real Python* article](https://realpython.com/python-advent-of-code/#the-structure-of-a-solution). Each day has 'day##_text.txt' that contains the example puzzle input copied from the problem statement and 'day##_input.txt', which contains my actual puzzle input. 
