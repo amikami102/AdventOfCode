@@ -4,9 +4,12 @@
 Usage example:
     Advent_Of_Code/year2022 $ python day14_regolith_reservoir.py day14_test.txt day14_input.txt
 
-A tricky aspect of grids in Advent of Code is that sometimes the navigation is physical, (row, column), while others it's Cartesian, (x, y), which is what Day 14 uses. However, the y is inverted axis where y increases as you go "down" instead of "up."
+A tricky aspect of grids in Advent of Code is that sometimes the navigation is physical, (row, column),
+while others it's Cartesian, (x, y), which is what Day 14 uses.
+However, the y is inverted axis where y increases as you go "down" instead of "up."
 
-Inspired by Peter Norvig's solution to only add grid coordinate to the Grid dictionary if the cell value is either a rock ('#') or a sand particle that has come to rest ('o').
+Inspired by Peter Norvig's solution to only add grid coordinate to the Grid dictionary
+if the cell value is either a rock ('#') or a sand particle that has come to rest ('o').
 """
 import sys
 from typing import *

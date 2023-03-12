@@ -17,7 +17,6 @@ Forest = collections.defaultdict[Coord, int]
 DIRECTIONS4 = Up, Down, Right, Left = (-1, 0), (1, 0), (0, 1), (0, -1)
 
 
-
 def parse(txt_filename: str) -> Forest:
     """
     Parse the lines of integers into a list of Tree objects.
