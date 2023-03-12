@@ -2,7 +2,7 @@
 -- Day 17: Pyroclastic Flow --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day17_pyroclastic_flow.py day17_test.txt day17_input.txt
+    Advent_Of_Code/year2022 $ python day17_pyroclastic_flow.py day17_test.txt day17_input.txt
 
 Inspired by this very fast solution, https://www.reddit.com/r/adventofcode/comments/znykq2/comment/j0vj0l2/?utm_source=share&utm_medium=web2x&context=3
 
@@ -14,13 +14,11 @@ The parameters we need in order to compute the final height are
     - the last index before the first period begins;
     - the amount the tower grows per cycle (`delta_height`).
 
-The cycle will be determined while simulating the tetris process. During the simulation, we will keep track of the following data each simulation round.
-    - the rock index (0, 1, 2, 3, or 4)
-    - the jet index (0, 1, ..., J)
-    - the leftmost row index where the indexed rock that has stopped moving (0, 1, 2, ..., 6)
-    - the height of the tower
-
-
+The cycle will be determined while simulating the tetris process. During the simulation, we will keep track of the following data each simulation round:
+    - the rock index (0, 1, 2, 3, or 4);
+    - the jet index (0, 1, ..., J);
+    - the leftmost row index where the indexed rock that has stopped moving (0, 1, 2, ..., 6);
+    - the height of the tower.
 """
 import sys
 import pathlib

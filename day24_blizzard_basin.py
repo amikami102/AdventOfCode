@@ -2,7 +2,7 @@
 -- Day 24: Blizzard Basin --
 
 Usage example
-    Advent_of_code/year2022 $ python day24_blizzard_basin.py day24_test.txt day24_input.txt
+    Advent_Of_code/year2022 $ python day24_blizzard_basin.py day24_test.txt day24_input.txt
 
 The key idea to solving the search problem efficiently is to save the state of the grid only every m minutes
 where m is a common multiple of the width and height of the basin (excluding the walls from the length counts).

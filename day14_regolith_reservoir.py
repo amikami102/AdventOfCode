@@ -2,7 +2,7 @@
 -- Day 14: Regolith Reservoir --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day14_regolith_reservoir.py day14_test.txt day14_input.txt
+    Advent_Of_Code/year2022 $ python day14_regolith_reservoir.py day14_test.txt day14_input.txt
 
 A tricky aspect of grids in Advent of Code is that sometimes the navigation is physical, (row, column), while others it's Cartesian, (x, y), which is what Day 14 uses. However, the y is inverted axis where y increases as you go "down" instead of "up."
 

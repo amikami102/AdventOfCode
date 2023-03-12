@@ -2,7 +2,7 @@
 -- Day 07: No Space Left on Device
 
 Usage example:
-    Advent_of_Code/year2022 $ python day07_no_space_left_on_device.py day07_test.txt day07_input.txt
+    Advent_Of_Code/year2022 $ python day07_no_space_left_on_device.py day07_test.txt day07_input.txt
 """
 import sys
 import collections

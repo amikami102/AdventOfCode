@@ -2,7 +2,7 @@
 -- Day 05: Supply Stack --
 
 Usage example:
-    Advent_of_Code_/year022 $ python day05_supply_stack.py day05_test.txt day05_input.txt
+    Advent_Of_Code_/year022 $ python day05_supply_stack.py day05_test.txt day05_input.txt
 """
 import sys
 import itertools
@@ -52,15 +52,14 @@ def parse(txt_filename: str) -> tuple[list[str], list[str]]:
     The file content is a 2d view of stacks, an empty line break, and a sequence of movements.
     Use itertools.takewhile() to split the file content into before and after the empty line break (without including the line break).
     """
-    with open(txt_filename, 'r') as f:
-        it = iter(f.readlines())
-        stack_layers = [
-            line.strip('\n')
-            for line in itertools.takewhile(lambda line: line != '\n', it)
-            ]
-        instructions = [
-            line.strip() for line in it
+    it = iter(pathlib.Path(txt_filename).read_text().splitlines())
+    stack_layers = [
+        line.strip('\n')
+        for line in itertools.takewhile(lambda line: line != '\n', it)
         ]
+    instructions = [
+        line.strip() for line in it
+    ]
     return stack_layers, instructions
 
 

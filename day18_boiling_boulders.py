@@ -2,7 +2,7 @@
 -- Day 18: Boiling Boulders --
 
 Usage example
-    Advent_of_Code/year2022 $ python day18_boiling_boulders.py day18_test.txt day18_input.txt
+    Advent_Of_Code/year2022 $ python day18_boiling_boulders.py day18_test.txt day18_input.txt
 
 Inspired by Peter Norvig' solution for its parsimony
 (cf. https://www.reddit.com/r/adventofcode/comments/zoqhvy/comment/j1ry942/?utm_source=share&utm_medium=web2x&context=3).

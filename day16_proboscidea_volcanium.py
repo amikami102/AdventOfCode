@@ -1,6 +1,9 @@
 """
 -- Day 16: Proboscidea Volcanium --
 
+Usage example:
+    Advent_Of_Code/year2022 $ python day16_proboscidea_volcanium.py day16_test.txt day16_input.txt
+
 Inspired by
     - https://github.com/juanplopes/advent-of-code-2022/blob/6794122df32a857827e0c49871e848afe62cff18/day16.py
     - https://github.com/mebeim/aoc/blob/8b5f3ef09cb6ddd98a99f8139dd3007ffa3e3d36/2022/solutions/day16.py

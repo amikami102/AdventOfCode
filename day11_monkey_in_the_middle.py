@@ -2,7 +2,7 @@
 -- Day 11: Monkey in the Middle --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day11_monkey_in_the_middle.py day11_test.txt day11_input.txt
+    Advent_Of_Code/year2022 $ python day11_monkey_in_the_middle.py day11_test.txt day11_input.txt
 
 
 Two lessons:
@@ -12,6 +12,7 @@ Two lessons:
     Hash their items out in a separate variable.
 """
 import sys
+import pathlib
 import collections
 import re
 import operator
@@ -65,11 +66,10 @@ def parse(txt_filename: str) -> list[Monkey]:
             false_monkey=int(false_monkey)
         )
 
-    with open(txt_filename, 'r') as f:
-        return [
-            parse_block(block)
-            for block in f.read().split('\n\n')
-        ]
+    return [
+        parse_block(block)
+        for block in pathlib.Path(txt_filename).read_text().split('\n\n')
+    ]
 
 
 def _simulate(monkeys: list[Monkey], n: int, relief: int = 1) -> int:

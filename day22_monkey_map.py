@@ -2,7 +2,7 @@
 -- Day 22: Monkey Map --
 
 Usage example
-    Advent_of_code/year2022 $ python day22_monkey_map.py day22_test.txt day22_input.txt
+    Advent_Of_code/year2022 $ python day22_monkey_map.py day22_test.txt day22_input.txt
 
 Part 1 is adapted from Peter Norvig's solution by finding the warp path by walking back.
 

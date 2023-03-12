@@ -2,18 +2,20 @@
 -- Day 08: Treetop Tree House --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day08_treetop_tree_house.py day08_test.txt day08_input.txt
+    Advent_Of_Code/year2022 $ python day08_treetop_tree_house.py day08_test.txt day08_input.txt
 """
 import sys
+import pathlib
 import math
 import collections
 from typing import *
 
 T = TypeVar('T')
-
-DIRECTIONS4 = Up, Down, Right, Left = (-1, 0), (1, 0), (0, 1), (0, -1)
 Coord = collections.namedtuple('Coord', ['row', 'column'])
 Forest = collections.defaultdict[Coord, int]
+
+DIRECTIONS4 = Up, Down, Right, Left = (-1, 0), (1, 0), (0, 1), (0, -1)
+
 
 
 def parse(txt_filename: str) -> Forest:
@@ -21,10 +23,9 @@ def parse(txt_filename: str) -> Forest:
     Parse the lines of integers into a list of Tree objects.
     """
     forest = collections.defaultdict(int)
-    with open(txt_filename, 'r') as f:
-        for row, line in enumerate(f.read().splitlines()):
-            for column, height in enumerate(line):
-                forest[Coord(row, column)] = int(height)
+    for row, line in enumerate(pathlib.Path(txt_filename).read_text().splitlines()):
+        for column, height in enumerate(line):
+            forest[Coord(row, column)] = int(height)
     return forest
 
 

@@ -2,7 +2,7 @@
 -- Day 19: Not Enough Minerals --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day19_not_enough_minerals.py day19_test.txt day19_input.txt
+    Advent_Of_Code/year2022 $ python day19_not_enough_minerals.py day19_test.txt day19_input.txt
 
 Inspired by Peter Norvig's solution although there are faster solutions.
     - (u/4HbQ although this fundamentally relies on tuning the sorting key function and the threshold count) https://www.reddit.com/r/adventofcode/comments/zpihwi/comment/j0tvzgz/?utm_source=share&utm_medium=web2x&context=3

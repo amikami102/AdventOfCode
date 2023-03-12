@@ -1,10 +1,11 @@
 """
 -- Day 10: Cathode Ray Tube --
 
-Usag example:
-    Advent_of_Code/year2022 $ python day10_cathode_ray_tube.py day10_test.txt day10_input.txt
+Usage example:
+    Advent_Of_Code/year2022 $ python day10_cathode_ray_tube.py day10_test.txt day10_input.txt
 """
 import sys
+import pathlib
 import functools
 import itertools
 from typing import *
@@ -16,10 +17,9 @@ ADDX = 'addx'
 
 def parse(txt_filename: str) -> list[list[str]]:
     separator = functools.partial(str.split, sep=' ')
-    with open(txt_filename, 'r') as f:
-        return list(
-                map(separator, f.read().splitlines())
-            )
+    return list(
+            map(separator, pathlib.Path(txt_filename).read_text().splitlines())
+        )
 
 
 def _execute_program(commands: list[list[str]]) -> Iterator[int]:

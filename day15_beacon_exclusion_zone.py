@@ -2,10 +2,7 @@
 -- Day 15: Beacon Exclusion Zone --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day15_beacon_exclusion_zone.py day15_test.txt day15_input.txt
-
-
-Inspired by Peter Norvig's solution:
+    Advent_Of_Code/year2022 $ python day15_beacon_exclusion_zone.py day15_test.txt day15_input.txt
 
 Part 1:
 Do not find all sensor detector ranges but limit the search within the target y coordinate region.

@@ -2,7 +2,7 @@
 -- Day 21: Monkey Math --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day21_monkey_math.py day21_test.txt day21_input.txt
+    Advent_Of_Code/year2022 $ python day21_monkey_math.py day21_test.txt day21_input.txt
 
 The key idea to solving part 1 (without sympy module) is to use recursion.
 For a solution to part 2 that doesn't involve sympy, see this Reddit user's hacky solution that sets

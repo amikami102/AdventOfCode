@@ -2,7 +2,7 @@
 -- Day 23: Unstable Diffusion --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day23_unstable_diffusion.py day23_test.txt day23_input.txt
+    Advent_Of_Code/year2022 $ python day23_unstable_diffusion.py day23_test.txt day23_input.txt
 
 Inspired by Peter Norvig's solution for part 2 on how to stop an iterator (https://colab.research.google.com/github/norvig/pytudes/blob/main/ipynb/Advent-2022.ipynb#scrollTo=X7XYM8aji_oO)
 

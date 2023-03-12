@@ -2,20 +2,30 @@
 -- Day 06: Tuning Trouble --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day06_tuning_trouble.py day06_test.txt day06_input.txt
+    Advent_Of_Code/year2022 $ python day06_tuning_trouble.py day06_test.txt day06_input.txt
 """
 import sys
-from typing import *
+import pathlib
 import itertools
 import functools
 import collections
+from typing import *
 T = TypeVar('T')
 
 
 def parse(txt_filename: str) -> str:
     """Return the one line of strings in the txt file"""
-    with open(txt_filename, 'r') as f:
-        return f.readline()
+    return pathlib.Path(txt_filename).read_text()
+
+
+def sliding_window(iterable: Iterable[T], n: int) -> Iterator[collections.deque[T]]:
+    it = iter(iterable)
+    window = collections.deque(itertools.islice(it, n), maxlen=n)
+    for item in it:
+        window.append(item)
+        if len(tuple(window)) == n:
+            yield tuple(window)
+    yield tuple(window)
 
 
 def _solve(line: str, n_char: int = 4) -> int:
@@ -23,17 +33,6 @@ def _solve(line: str, n_char: int = 4) -> int:
     Iterate through the line and return the index of the first character
     after the most recent n_char string characters that are all unique.
     """
-    def sliding_window(iterable: Iterable[T], n: int) -> Iterator[collections.deque[T]]:
-        it = iter(iterable)
-        window = collections.deque(itertools.islice(it, n), maxlen=n)
-        for item in it:
-            window.append(item)
-            if len(tuple(window)) == n:
-                yield tuple(window)
-        yield tuple(window)
-
-    windows = sliding_window(line, n_char)
-
     return next(itertools.dropwhile(
         lambda entry: len(set(entry[1])) < n_char,
         enumerate(sliding_window(line, n_char))

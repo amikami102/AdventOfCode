@@ -2,9 +2,14 @@
 -- Day 20: Grove Positioning System --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day20_grove_positioning_system.py day20_test.txt day20_input.txt
+    Advent_Of_Code/year2022 $ python day20_grove_positioning_system.py day20_test.txt day20_input.txt
 
-The key idea is to not modify the original list of numbers (`encrypted_file`) and instead mix an alternative list, which is a list of the indices so that if the original list is `n` items long, the list that is being mixed consists of (0, 1, 2, ..., n-1). This is better than mixing a copy of encrypted file because the encrypted file can have duplicate integer values. When you're looking for where the item is in the mixed list, it's better to have a unique identifier so that you're moving the right version of the duplicate integer.
+The key idea is to not modify the original list of numbers (`encrypted_file`) but instead mix an alternative list.
+If the original list is `n` items long, the alternative list will mix the elements in (0, 1, 2, ..., n-1).
+
+This is better than mixing a copy of encrypted file because the encrypted file can have duplicate integer values.
+When you're looking for where the item is in the mixed list, it's better to have a unique identifier
+so that you're moving the right version of the duplicate integer.
 """
 import sys
 import pathlib

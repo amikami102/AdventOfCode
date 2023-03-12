@@ -2,7 +2,7 @@
 -- Day 03: Rucksack Reorganization --
 
 Usage example
-    Advent_of_Code_2022 $ python day03_rucksack_reorganization.py day03_test.py day03_input.txt
+    Advent_Of_Code_2022 $ python day03_rucksack_reorganization.py day03_test.py day03_input.txt
 """
 import sys
 import string
@@ -18,13 +18,12 @@ PRIORITY_LEVEL: dict[str, int] = {
 }
 
 
-def parse(txt_filename: str | pathlib.Path) -> list[str]:
+def parse(txt_filename: str) -> list[str]:
     """
     Return a list of strings.
     e.g. ['abAB', 'cdCO', ...]
     """
-    with open(txt_filename, 'r') as f:
-        return f.read().splitlines()
+    return pathlib.Path(txt_filename).read_text().splitlines()
 
 
 def solve_part1(rucksacks: list[str]) -> int:
@@ -66,6 +65,7 @@ def solve_part2(rucksacks: list[str]) -> int:
 if __name__ == '__main__':
     title = 'Day 03: Rucksack Reorganization'
     print(title.center(50, '-'))
+
     for path in sys.argv[1:]:
         data = parse(path)
         part1 = solve_part1(data)

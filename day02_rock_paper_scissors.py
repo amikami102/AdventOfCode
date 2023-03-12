@@ -2,7 +2,7 @@
 --- Day 2: rock, paper, scissors ---
 
 Usage example
-    Advent_of_Code/year2022 $ python day02_rock_paper_scissors.py day02_test.txt day02_input.txt
+    Advent_Of_Code/year2022 $ python day02_rock_paper_scissors.py day02_test.txt day02_input.txt
 """
 import sys
 import pathlib
@@ -14,15 +14,15 @@ win_rules = {
     PAPER: ROCK,
     SCISSORS: PAPER
 }
-lose_rules = {v: k for k,v in win_rules.items()}
+lose_rules = {v: k for k, v in win_rules.items()}
 DRAW, LOSE, WIN = 3, 0, 6
 
 
-def parse(txt_filename: pathlib.Path | str) -> list[tuple[str, ...]]:
-    with open(txt_filename, 'r') as f:
-        return [
-            tuple(line.strip().split(' ')) for line in f
-        ]
+def parse(txt_filename: str) -> list[tuple[str, ...]]:
+    return [
+        tuple(line.strip().split(' '))
+        for line in pathlib.Path(txt_filename).read_text().splitlines()
+    ]
 
 
 def solve_part1(rounds: Iterable[tuple[str, str]]) -> int:
@@ -64,14 +64,15 @@ def solve_part2(rounds: Iterable[tuple[str, str]]) -> int:
     return score
 
 
-
 if __name__ == '__main__':
     title = 'Day 02: Rock, Paper, Scissors'
     print(title.center(50, '-'))
+
     for path in sys.argv[1:]:
-        print(f'{path}:')
         data = parse(path)
         part1 = solve_part1(data)
         part2 = solve_part2(data)
-        print(f'Part 1: The total score as played according to the strategy guide is {part1}.')
-        print(f'Part 2: The total score as played according to the new interpretation of the strategy guide is {part2}.')
+        print(f"""{path}:
+        Part 1: The total score as played according to the strategy guide is {part1}.
+        Part 2: The total score as played according to the new interpretation of the strategy guide is {part2}.
+        """)

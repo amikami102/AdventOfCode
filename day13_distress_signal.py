@@ -2,7 +2,7 @@
 -- Day 13: Distress Signal --
 
 Usage example
-    Advent_of_Code/year2022 $ python day13_distress_signal.py day13_test.txt day13_input.txt
+    Advent_Of_Code/year2022 $ python day13_distress_signal.py day13_test.txt day13_input.txt
 
 Inspired by Peter Norvig for the elegant comparison and sorting
 """

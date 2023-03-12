@@ -2,9 +2,10 @@
 -- Day 4 camp cleanup --
 
 Usage example
-    Advent_of_Code/year2022 $ python day04_camp_cleanup.py day04_test.txt day04_input.txt
+    Advent_Of_Code/year2022 $ python day04_camp_cleanup.py day04_test.txt day04_input.txt
 """
 import sys
+import pathlib
 import itertools
 from typing import *
 
@@ -21,20 +22,19 @@ def parse(txt_filename: str) -> Iterable[tuple[int, ...]]:
     (41, 98, 41,97)
     """
     pairs = []
-    with open(txt_filename, 'r') as f:
-        for line in f:
-            pairs.append(
-                tuple(
-                    map(int,
-                        itertools.chain.from_iterable(
-                            map(
-                                lambda pair: tuple(pair.split('-')),
-                                line.strip('\n').split(',')
-                            )
+    for line in pathlib.Path(txt_filename).read_text().splitlines():
+        pairs.append(
+            tuple(
+                map(int,
+                    itertools.chain.from_iterable(
+                        map(
+                            lambda pair: tuple(pair.split('-')),
+                            line.strip('\n').split(',')
                         )
                     )
                 )
             )
+        )
     return pairs
 
 
@@ -68,10 +68,12 @@ def solve_part2(pairs: Iterable[tuple[int, ...]]):
 if __name__ == '__main__':
     title = 'Day 04: Camp Cleanup'
     print(title.center(50, '-'))
+
     for path in sys.argv[1:]:
         data = parse(path)
         part1 = solve_part1(data)
         part2 = solve_part2(data)
+
         print(f"""{path}:
         Part 1: The number of pairs where one elf's assignment fully contains the other's is {part1}.
         Part 2: The number of pairs where the assignments overlap is {part2}.

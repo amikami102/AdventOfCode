@@ -2,7 +2,7 @@
 -- Day 12: Hill Climbing Algorithm --
 
 Usage example:
-    Advent_of_Code/year2022 $ python day12_hill_climbing_algorithm.py day12_test.txt day12_input.txt
+    Advent_Of_Code/year2022 $ python day12_hill_climbing_algorithm.py day12_test.txt day12_input.txt
 
 Inspired by Peter Norvig's solution for a faster part 2, but implemented with BFS instead of A*
 """
