@@ -9,6 +9,7 @@ The code assumes that
     b) there can be duplicate sub-folder names in different parent folders.
 """
 import sys
+import pathlib
 import collections
 import itertools
 import re
@@ -23,8 +24,7 @@ def parse(txt_filename: str) -> list[str]:
     """
     Return a list of strings.
     """
-    with open(txt_filename, 'r') as f:
-        return f.read().splitlines()
+    return pathlib.Path(txt_filename).read_text().splitlines()
 
 
 def _walk(commands: list[str]) -> dict[str, int]:
