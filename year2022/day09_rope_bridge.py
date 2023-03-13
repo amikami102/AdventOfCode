@@ -5,63 +5,68 @@ Usage example:
     Advent_Of_Code/year2022 $ python day09_rope_bridge.py day09_test.txt day09_input.txt
 """
 import sys
+import pathlib
 import itertools
 import collections
 from typing import *
 
 T = TypeVar('T')
-Coord = collections.namedtuple('Coord', ['row', 'column'])
-ZERO = Coord(0, 0)
-DIRECTIONS: dict[str, Coord] = {
-    'R': Coord(0, 1),
-    'L': Coord(0, -1),
-    'U': Coord(-1, 0),
-    'D': Coord(1, 0)
+Coord = tuple[int, int]     # (row, column)
+Vector = Coord
+Command = tuple[str, int]
+
+ROW, COLUMN = 0, 1
+ZERO: Coord = (0, 0)
+DIRECTIONS = Right, Left, Up, Down = (0, 1), (0, -1), (-1, 0), (1, 0)
+LOOKUP: dict[str, Vector] = {
+    'R': Right,
+    'L': Left,
+    'U': Up,
+    'D': Down
 }
 
 
-def parse(txt_filename: str) -> list[tuple[str, int]]:
-    with open(txt_filename, 'r') as f:
-        return [
-            (
-                line.split(' ')[0],
-                int(line.split(' ')[1])
-            )
-            for line in f.read().splitlines()
-        ]
+def parse(txt_filename: str) -> list[Command]:
+    return [
+        (
+            line.split(' ')[0],
+            int(line.split(' ')[1])
+        )
+        for line in pathlib.Path(txt_filename).read_text().splitlines()
+    ]
 
 
-def _add_coords(coord1: Coord, coord2: Coord) -> Coord:
-    return Coord(coord1.row + coord2.row, coord1.column + coord2.column)
+def _add_vectors(vector1: Vector, vector2: Vector) -> Vector:
+    return vector1[ROW] + vector2[ROW], vector1[COLUMN] + vector2[COLUMN]
 
 
-def _write_head_history(commands: list[tuple[str, int]]) -> list[Coord]:
+def _write_head_history(commands: Iterable[Command]) -> list[Coord]:
     """Write the history of Head knot"""
     history = [ZERO]
     for move in commands:
         direction, n = move
-        history.extend([DIRECTIONS[direction]] * n)
-    return list(itertools.accumulate(history, _add_coords))
+        history.extend([LOOKUP[direction]] * n)
+    return list(itertools.accumulate(history, _add_vectors))
 
 
 def _update_tail_coord(tail: Coord, head: Coord) -> Coord:
     """
     Return the vector the tail needs to move so that the tail is touching the head.
     """
-    drow, dcol = (head.row - tail.row), (head.column - tail.column)
+    drow, dcol = (head[ROW] - tail[ROW]), (head[COLUMN] - tail[COLUMN])
     if abs(drow) <= 1 and abs(dcol) <= 1:
         return tail
     elif abs(drow) > 1 or abs(dcol) > 1:
-        return _add_coords(
+        return _add_vectors(
             tail,
-            Coord(
+            (
                 1 * int(drow/abs(drow)) if drow != 0 else 0,
                 1 * int(dcol/abs(dcol)) if dcol != 0 else 0
             )
         )
 
 
-def solve_part1(puzzle_input: list[tuple[str, int]]):
+def solve_part1(puzzle_input: list[Command]) -> int:
     """
     Count the number of coordinates the tail visits as its coordinate is updated by the head's movement.
     """
@@ -72,7 +77,7 @@ def solve_part1(puzzle_input: list[tuple[str, int]]):
     return len(set(tail_history))
 
 
-def solve_part2(puzzle_input: list[tuple[str, int]]):
+def solve_part2(puzzle_input: list[Command]) -> int:
     """
     Same as part 1, but now there are nine tail knots.
     Count the number of coordinates visited by the 9th tail knot.
