@@ -15,17 +15,17 @@ Here is a table cataloging of methods, modules, and problem-solving frameworks I
 | day | tags |
 |:--:| :---|
 | 01 | `itertools.groupby` | 
-| 03 | `grouper`  that groups iterable into groups of size n |
+| 03 | `grouper` from `itertools` recipes |
 | 05 | `itertools.takewhile` |
 | 06 | `sliding_window` from `itertools` recipes|
-| 07 | iteratively go down the branch and backtrack|
+| 07 | iteratively go down a branch and backtrack|
 | 08 | `before_and_after` from `itertools` recipes |
 | 11 | memory-saving by reducing integer values by taking the modulo of the least common multiple |
 | 12 | breadth-first search |
 | 13 | recursive walk through a nested list; `functools.cmp_to_key` to sort an iterable by feeding a comparison function; enumerate items from 1 by `enumerate(..., 1)` |
 | 14 | `itertools.count`, `__missing__()` class method|
-| 15 | yield points on a circle perimeter by `itertools.repeat` and `itertools.accumulate`|
-| 16| Floyd-Warshall algorithm for finding the shortest path length; depth-first search|
+| 15 | yield points on a circle perimeter with `itertools.repeat` and `itertools.accumulate`|
+| 16 | Floyd-Warshall algorithm for finding the shortest path length; depth-first search|
 | 17 | periodic sequence |
 | 18 | breadth-first search to count surface area of an object that has holes|
 | 19 | depth-first search and state pruning |
