@@ -22,6 +22,9 @@ import math
 from typing import *
 
 T = TypeVar('T')
+Result = collections.namedtuple('Result', ['monkey', 'items'])
+Formula = Callable[Sequence, tuple[Result, Result]]
+
 MONKEY_PATTERN: str =\
 """Monkey (.+):
   Starting items: (.+)
@@ -33,8 +36,6 @@ OPERATORS: dict[str, Callable] = {
     '+': operator.add,
     '*': operator.mul
 }
-Result = collections.namedtuple('Result', ['monkey', 'items'])
-Formula = Callable[Sequence, tuple[Result, Result]]
 
 
 @dataclasses.dataclass
