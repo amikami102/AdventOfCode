@@ -15,36 +15,32 @@ import itertools
 import functools
 
 T = TypeVar('T')
-
-ALPHABETS: Sequence[str] = 'S' + string.ascii_lowercase + 'E'
-
-Coord = collections.namedtuple('Coord', ['row', 'column'])
+Coord = tuple[int, int]     # (row, column)
 Vector = Coord
-DIRECTIONS4 = Up, Down, Left, Right = \
-    tuple(
-        map(lambda p: Vector(*p), ((-1, 0), (1, 0), (0, -1), (0, 1)))
-    )
-DUMMY_OFF_GRID = Coord(-1, -1)    # for part 2
+
+ROW, COLUMN = 0, 1
+ALPHABETS: Sequence[str] = 'S' + string.ascii_lowercase + 'E'
+DIRECTIONS4 = Up, Down, Left, Right = (-1, 0), (1, 0), (0, -1), (0, 1)
+DUMMY_OFF_GRID: Coord = (-1, -1)    # for part 2
 
 
 def _add_vectors(vector1: Vector, vector2: Vector) -> Vector:
-    return Vector(
-        *tuple(p + q for p, q in zip(vector1, vector2))
-    )
+    return vector1[ROW] + vector2[ROW], vector1[COLUMN] + vector2[COLUMN]
 
 
 class Grid(dict):
     """Save grid data as a dictionary"""
-    def __init__(self, grid: Iterable[T], directions: tuple[Vector], default: T = KeyError) -> None:
+
+    def __init__(self, grid: Iterable[T], directions: tuple[Vector] = DIRECTIONS4, default: T = KeyError) -> None:
         """
         Initialize with a list of characters representing cell values.
         """
         super().__init__()
         self.directions = directions
-        self.default = default if default else None
+        self.default = default
         self.update(
             {
-                Coord(row, column): value
+                (row, column): value
                 for row, line in enumerate(grid)
                 for column, value in enumerate(line)
             }
@@ -53,7 +49,7 @@ class Grid(dict):
     def __repr__(self) -> str:
         return '\n'.join(
             ''.join(
-                self.get(coord)
+                self.get(coord, ' ')
                 for _, coord in itertools.groupby(row, key=lambda coord: coord.column)
             )
             for _, row in itertools.groupby(self, key=lambda coord: coord.row)
@@ -69,11 +65,11 @@ class Grid(dict):
         """Get neighboring coordinates of input coord."""
         return [
             (
-                neighbor := _add_vectors(coord, d),
+                neighbor := _add_vectors(coord, direction),
                 self[neighbor]
             )
-            for d in self.directions
-            if Coord(coord.row + d.row, coord.column + d.column) in self
+            for direction in self.directions
+            if _add_vectors(coord, direction) in self
         ]
 
 
@@ -183,7 +179,7 @@ def _find_path(puzzle_input: list[list[T]], problem_maker: Callable, *args) -> i
     Instantiate HillClimbProblem object with Grid object instantiated with the data from puzzle_input.
     Find the shortest path with BFS using the default start and end goals.
     """
-    grid = Grid(puzzle_input, directions=DIRECTIONS4)
+    grid = Grid(puzzle_input)
     problem = problem_maker(grid, *args)
     end_node = breadth_first_search(problem, problem.goal_test, problem.actions)
     start_to_goal = trace_path(end_node)
