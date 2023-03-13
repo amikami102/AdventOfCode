@@ -5,6 +5,7 @@ Usage example:
     Advent_Of_Code_/year022 $ python day05_supply_stack.py day05_test.txt day05_input.txt
 """
 import sys
+import pathlib
 import itertools
 import collections
 import re
