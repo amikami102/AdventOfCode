@@ -18,6 +18,15 @@ PRIORITY_LEVEL: dict[str, int] = {
 }
 
 
+def grouper(iterable: Iterable[T], n: int, fill: T = None) -> Iterator:
+    """
+    Group an iterable into groups of size n.
+    e.g. 'ABCDEFG' will be grouped into 'AB','CD','EF', 'G' if fillvalue is None.
+    """
+    args = [iter(iterable)] * n
+    return itertools.zip_longest(*args, fillvalue=fill)
+
+
 def parse(txt_filename: str) -> list[str]:
     """
     Return a list of strings.
@@ -35,7 +44,7 @@ def solve_part1(rucksacks: list[str]) -> int:
     out: int = 0
     for rucksack in rucksacks:
         first, second = rucksack[:len(rucksack) // 2], rucksack[len(rucksack) // 2:]
-        item = set(first).intersection(set(second)).pop()
+        item: str = set(first).intersection(set(second)).pop()
         out += PRIORITY_LEVEL[item]
     return out
 
@@ -45,19 +54,15 @@ def solve_part2(rucksacks: list[str]) -> int:
     Group rucksacks into groups of three and find the item common to all three in the group.
     Return the sum of the priority levels of the groups' common items.
     """
-
-    def grouper(iterable: Iterable[T], n: int, fillvalue: T = None) -> Iterator:
-        """
-        Group an iterable into groups of size n.
-        e.g. 'ABCDEFG' will be grouped into 'AB','CD','EF', 'G' if fillvalue is None.
-        """
-        args = [iter(iterable)] * n
-        return itertools.zip_longest(*args, fillvalue=fillvalue)
-
     out: int = 0
     for group in grouper(rucksacks, n=3):
         first, second, third = group
-        badge = set(first).intersection(set(second)).intersection(set(third)).pop()
+        badge: str = set(first)\
+            .intersection(
+                set(second)
+            ).intersection(
+                set(third)
+            ).pop()
         out += PRIORITY_LEVEL[badge]
     return out
 
