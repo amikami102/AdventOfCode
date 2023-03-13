@@ -13,8 +13,9 @@ from typing import *
 
 Stacks = dict[int, list[str]]
 Movement = collections.namedtuple('Movement', ['n', 'from_stack', 'to_stack'])
-CRATE_PATTERN = re.compile("\[(?P<letter>[A-Z])\]")
-MOVE_PATTERN = re.compile("move (?P<n>[\d]+) from (?P<from>[1-9]) to (?P<to>[1-9])")
+
+CRATE_PATTERN: re.Pattern = re.compile("\[(?P<letter>[A-Z])\]")
+MOVE_PATTERN: re.Pattern = re.compile("move (?P<n>[\d]+) from (?P<from>[1-9]) to (?P<to>[1-9])")
 
 
 def parse_stacks(stack_layers: list[str]) -> Stacks:
@@ -86,7 +87,9 @@ def solve_part2(initial_stack_layers: list[str], instructions: list[str]) -> str
     """
     stacks = parse_stacks(initial_stack_layers)
     for move in parse_instructions(instructions):
-        stacks[move.from_stack], crates = stacks[move.from_stack][:-move.n], stacks[move.from_stack][-move.n:]
+        stacks[move.from_stack], crates =\
+            stacks[move.from_stack][:-move.n], \
+            stacks[move.from_stack][-move.n:]
         stacks[move.to_stack].extend(crates)
     return ''.join(
         stack.pop() for stack in stacks.values()
