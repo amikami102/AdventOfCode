@@ -52,7 +52,7 @@ def _count_exterior_surface_area(voxels: list[Voxel]):
         a) starting on a voxel adjacent to an exterior voxel and
         b) not adding input voxel into frontier queue.
     """
-    cnt: int = 0
+    area_count: int = 0
 
     def _minmax(iterable: Iterable) -> tuple[int, int]:
         MinMax = collections.namedtuple('MinMax', ['min', 'max'])
@@ -76,11 +76,11 @@ def _count_exterior_surface_area(voxels: list[Voxel]):
     while frontier:
         for p in _get_adjacent_voxels(frontier.pop()):
             if p in voxels:     # touched a surface of input voxels
-                cnt += 1
+                area_count += 1
             elif _is_proximate(p) and p not in explored:
                 frontier.append(p)
                 explored.add(p)
-    return cnt
+    return area_count
 
 
 def parse(txt_filename) -> list[Voxel]:

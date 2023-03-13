@@ -22,13 +22,14 @@ Coord = tuple[int, int]     # (x, y), not (row, column)
 Vector = Coord
 RockPath = list[Coord]
 
+X, Y = 0, 1
 DIRECTIONS = Down, DownLeft, DownRight = (0, 1), (-1, 1), (1, 1)
 Source = (500, 0)
 ROCK, SAND = '#', 'o'
 
 
 def _add_vectors(vector0: Vector, vector1: Vector) -> Vector:
-    return vector0[0] + vector1[0], vector0[1] + vector1[1]
+    return vector0[X] + vector1[X], vector0[Y] + vector1[Y]
 
 
 class Grid(dict):
@@ -63,11 +64,11 @@ def _place_rocks(grid: Grid, paths: list[RockPath]) -> Grid:
     Place the paths of rocks on the grid.
     """
     for path_of_rocks in paths:
-        for (row0, col0), (row1, col1) in itertools.pairwise(path_of_rocks):
-            row_endpoints, col_endpoints = (row0, row1), (col0, col1)
+        for (x0, y0), (x1, y1) in itertools.pairwise(path_of_rocks):
+            x_endpoints, y_endpoints = (x0, x1), (y0, y1)
             for coord in itertools.product(
-                    range(min(row_endpoints), max(row_endpoints) + 1),
-                    range(min(col_endpoints), max(col_endpoints) + 1)
+                    range(min(x_endpoints), max(x_endpoints) + 1),
+                    range(min(y_endpoints), max(y_endpoints) + 1)
             ):
                 grid[coord] = ROCK
     return grid
@@ -77,7 +78,7 @@ def _simulate(grid: Grid, lay_floor: bool = False):
     """
     Simulate sand falling from Source until it hits the bottom floor of the grid
     """
-    bottom = max(map(lambda coord: coord[1], grid))
+    bottom = max(map(lambda coord: coord[Y], grid))
     if lay_floor:
         bottom = bottom + 2
         x_left, x_right = Source[0] - bottom, Source[0] + bottom

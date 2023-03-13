@@ -140,9 +140,9 @@ if __name__ == '__main__':
     title = 'Day 15: Beacon Exclusion Zone'
     print(title.center(50, '-'))
 
-    for path in sys.argv[1:]:
-        data = parse(path)
-        if 'test' in path:
+    for file in sys.argv[1:]:
+        data = parse(file)
+        if 'test' in file:
             solve_part1 = _count_empty_coords
             solve_part2 = _find_distress_beacon
         else:
@@ -150,7 +150,7 @@ if __name__ == '__main__':
             solve_part2 = functools.partial(_find_distress_beacon, max_value=4_000_000)
         part1 = solve_part1(data)
         part2 = solve_part2(data)
-        print(f"""{path}:
+        print(f"""{file}:
         Part 1: The number of positions that cannot contain a beacon is {part1}.
         Part 2: The distress signal is {part2}.
         """)

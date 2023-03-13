@@ -17,7 +17,7 @@ The three key ideas to solving the search problem are:
         - for ore robot is the number of ores needed by the robot that needs the most ores;
     - to prune search states that do not lead to the best known result.
 
-*: Though the solution uses depth-first search, there is some prioritization done by popping out the action that builds a geo robot.
+*: Though the solution uses depth-first search, there is some prioritization done by popping out the action that builds a geo robot so that this branch is searched first.
 """
 import sys
 import re

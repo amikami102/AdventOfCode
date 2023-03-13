@@ -127,7 +127,7 @@ def solve_part2(puzzle_input: list[Valve]) -> int:
     """
     Like part 1, but explore the valves to open via _depth_first_search(minutes=26) because the first 4 minutes
     are consumed to teach the elephant and no valves can be opened during that time.
-    Find the maximum
+    Return the maximum pressure released.
     """
     args = _get_costs_and_flows(puzzle_input)
     visits = _depth_first_search(*args, minutes=26)

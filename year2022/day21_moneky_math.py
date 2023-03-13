@@ -70,8 +70,6 @@ def solve_part2(puzzle_input: MonkeyJobs) -> int:
     return next(iter(sympy.solve(recursively_evaluate(jobs_updated, 'root'), humn)))
 
 
-
-
 if __name__ == '__main__':
     title = 'Day 21: Monkey Math'
     print(title.center(50, '-'))
