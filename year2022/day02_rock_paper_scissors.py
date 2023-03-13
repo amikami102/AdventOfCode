@@ -7,14 +7,15 @@ Usage example
 import sys
 import pathlib
 from typing import *
+from typing import List, Tuple
 
 ROCK, PAPER, SCISSORS = 1, 2, 3
-win_rules = {
+WIN_RULES: dict[int, int] = {
     ROCK: SCISSORS,
     PAPER: ROCK,
     SCISSORS: PAPER
 }
-lose_rules = {v: k for k, v in win_rules.items()}
+LOSE_RULES: dict[int, int] = {v: k for k, v in WIN_RULES.items()}
 DRAW, LOSE, WIN = 3, 0, 6
 
 
@@ -25,7 +26,7 @@ def parse(txt_filename: str) -> list[tuple[str, ...]]:
     ]
 
 
-def solve_part1(rounds: Iterable[tuple[str, str]]) -> int:
+def solve_part1(rounds: list[tuple[str, str]]) -> int:
     """
     They play A, B, or C, which are respectively Rock, Paper, Scissors.
     I play X, Y, or Z, which are respectively Rock, Paper, Scissors.
@@ -40,12 +41,12 @@ def solve_part1(rounds: Iterable[tuple[str, str]]) -> int:
         opponent_play, my_play = 'ABC'.index(opponent) + 1, 'XYZ'.index(me) + 1
         score += (
             DRAW if opponent_play == my_play
-            else WIN if win_rules[my_play] == opponent_play
+            else WIN if WIN_RULES[my_play] == opponent_play
             else LOSE) + my_play
     return score
 
 
-def solve_part2(rounds: Iterable[tuple[str, str]]) -> int:
+def solve_part2(rounds: list[tuple[str, str]]) -> int:
     """
     'X' = I lose, 'Y' = 'I draw', 'Z' = 'I win'
     Everything else is the same as part 1.
@@ -56,11 +57,11 @@ def solve_part2(rounds: Iterable[tuple[str, str]]) -> int:
         opponent_play = 'ABC'.index(opponent) + 1
         match result:
             case 'X':
-                score += LOSE + win_rules[opponent_play]
+                score += LOSE + WIN_RULES[opponent_play]
             case 'Y':
                 score += DRAW + opponent_play
             case 'Z':
-                score += WIN + lose_rules[opponent_play]
+                score += WIN + LOSE_RULES[opponent_play]
     return score
 
 
