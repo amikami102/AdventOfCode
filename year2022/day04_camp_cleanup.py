@@ -13,13 +13,7 @@ from typing import *
 def parse(txt_filename: str) -> Iterable[tuple[int, ...]]:
     """
     Each line of the file is '{left1}-{right1},{left2}-{right2}'.
-    Parse each line as a 4-length tuple of integers.
-
-    >>> parsed = parse("1-99,2-98\n41-98,41-97")
-    >>> for line in parsed:
-    >>>     print(parsed)
-    (1, 99, 2, 98)
-    (41, 98, 41,97)
+    Parse each line as a tuple of four integers.
     """
     pairs = []
     for line in pathlib.Path(txt_filename).read_text().splitlines():
@@ -41,7 +35,7 @@ def parse(txt_filename: str) -> Iterable[tuple[int, ...]]:
 def expand_assignments(*pair) -> tuple[set[int], set[int]]:
     """
     For each pair of elves, get the range of sections each elf covers and return
-    these ranges as sets of integers.
+    each range as a set of integers in those ranges.
     """
     left1, right1, left2, right2 = pair
     return set(range(left1, right1 + 1)), set(range(left2, right2 + 1))
