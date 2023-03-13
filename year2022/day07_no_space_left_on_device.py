@@ -3,6 +3,10 @@
 
 Usage example:
     Advent_Of_Code/year2022 $ python day07_no_space_left_on_device.py day07_test.txt day07_input.txt
+
+The code assumes that
+    a) the same directory is never opened twice;
+    b) there can be duplicate sub-folder names in different parent folders.
 """
 import sys
 import collections
@@ -26,12 +30,10 @@ def parse(txt_filename: str) -> list[str]:
 def _walk(commands: list[str]) -> dict[str, int]:
     """
     Return a mapping of directory to the total of their content file sizes.
-    The commands walk down a tree until it reaches an end of a branch before it backtracks to the last fork
-    that leads to another unopened branch.
-    * Assume that the same directory is never opened twice.
-    * Assume that there can be the same directory name can be used in different parent folders.
+    The commands walk down a tree until it reaches an end of a branch before it backtracks to the last fork that leads to another unopened branch.
     """
     directory_sizes: dict[str, int] = collections.defaultdict(int)
+
     branch_path = collections.deque(['/'])
     for command in commands:
         if command.startswith('$ cd'):
@@ -50,7 +52,9 @@ def _walk(commands: list[str]) -> dict[str, int]:
             continue
         else:
             for key in branch_path:
-                directory_sizes[key] += int(re.match(FILE_PATTERN, command).group('filesize'))
+                directory_sizes[key] += int(
+                    re.match(FILE_PATTERN, command).group('filesize')
+                )
     return directory_sizes
 
 
