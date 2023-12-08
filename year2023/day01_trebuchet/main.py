@@ -1,9 +1,3 @@
-"""
---- Day 1: Trebuchet?! ---
-
-Usage:
-    $ python main.py test1.txt test2.txt input.txt
-"""
 from typing import Iterator, Callable
 from collections import deque
 from itertools import islice
