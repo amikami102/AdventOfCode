@@ -1,8 +1,8 @@
 """
 --- Day 1: Trebuchet?! ---
 
-Usage example:
-    $ python day01_trebuchet.py day01_test.txt day01_test2.txt day01_input.txt
+Usage:
+    $ python main.py test1.txt test2.txt input.txt
 """
 from typing import Iterator, Callable
 from collections import deque
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     title = 'Day 1: Trebuchet?!'
     print(title.center(50, '-'))
 
-    for txtfile in sys.argv[1:]:
+    for txtfile in sys.argv[:]:
         data = parse(txtfile)
         part1 = solve_part1(data)
         part2 = solve_part2(data)
