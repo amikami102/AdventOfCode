@@ -74,7 +74,7 @@ if __name__ == '__main__':
     title = 'Day 1: Trebuchet?!'
     print(title.center(50, '-'))
 
-    for txtfile in sys.argv[:]:
+    for txtfile in sys.argv[1:]:
         data = parse(txtfile)
         part1 = solve_part1(data)
         part2 = solve_part2(data)
