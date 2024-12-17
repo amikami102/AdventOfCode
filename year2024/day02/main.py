@@ -57,7 +57,6 @@ def is_tolerably_safe(report: Iterable[int], test_level=0) -> bool:
             return is_tolerably_safe(report, test_level + 1)
 
 
-
 def solve_part1(data) -> int:
     return sum(is_safe_report(report) for report in data)
 
