@@ -46,7 +46,7 @@ def solve_part2(data) -> int:
     
 
 if __name__ == '__main__':
-    title = 'Day 2: Mull It Over'
+    title = 'Day 3: Mull It Over'
     print(title.center(50, '-'))
 
     for txtfile in sys.argv[1:]:
