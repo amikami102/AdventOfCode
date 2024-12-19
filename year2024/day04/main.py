@@ -113,7 +113,6 @@ def solve_part2(data):
     )
                 
 
-
 if __name__ == '__main__':
     title = 'Day 4: Ceres Search'
     print(title.center(50, '-'))
