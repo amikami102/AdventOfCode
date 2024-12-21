@@ -1,4 +1,4 @@
-# year2024/day##/main.py
+# year2024/day09/main.py
 import sys
 from itertools import takewhile
 from pathlib import Path 

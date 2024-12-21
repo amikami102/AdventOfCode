@@ -1,4 +1,4 @@
-# year2024/day##/main.py
+# year2024/day08/main.py
 import sys
 from pathlib import Path 
 from typing import Collection, Iterator, Callable

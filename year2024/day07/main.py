@@ -1,4 +1,4 @@
-# year2024/day##/main.py
+# year2024/day07/main.py
 import sys
 import re 
 from typing import Callable
