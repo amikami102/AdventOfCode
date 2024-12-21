@@ -86,10 +86,10 @@ def locate_antinode_pair(
         yield antinode2
     
     
-
 def follow_antinode_line(
         antenna1: Coordinate, antenna2: Coordinate, grid: Grid
-    ) -> Iterator[Coordinate]:  
+    ) -> Iterator[Coordinate]:
+    """Draw a line of antinodes, which also includes the antennae themselves."""  
     direction1 = add_vectors(antenna1, multiply_scalar(antenna2, -1))
     direction2 = add_vectors(antenna2, multiply_scalar(antenna1, -1))
     yield from grid.draw_line(antenna1, direction1)
@@ -99,6 +99,7 @@ def follow_antinode_line(
 def find_all_antinodes(
         city: Grid, antinode_locator: Callable
     ) -> set[Coordinate]:
+    """Find all the antinodes for the antennae in `city` using `antinode_locator`."""
     antennae_groups = group_antennae_by_frequency(city)
     return {
         antinode 
