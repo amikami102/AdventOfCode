@@ -27,9 +27,8 @@ def convert_to_layout(diskmap: tuple[int, ...]) -> list[str]:
 
 
 def compress_layout(layout: list[str]) -> list[str]:
-    disksize = len(layout)
     free_location = -1 
-    block_location = disksize
+    block_location = disksize = len(layout)
     while True:
         free_location = first_true(
             range(free_location + 1, disksize),
