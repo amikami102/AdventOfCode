@@ -28,7 +28,7 @@ def simple_grid():
     'data, skip, expected', 
     [(DATA, [], 25), (DATA, {'.'}, 9)]
 )
-def test_skip_kwarg(data, skip, expected):
+def test_kwarg_skip(data, skip, expected):
     grid = Grid(data.splitlines(), skip=skip)
     assert len(grid) == expected
 
