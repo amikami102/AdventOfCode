@@ -4,7 +4,7 @@ This is my repository for [Advent of Code](https://adventofcode.com/) solutions 
 
 ## Year 2024
 
-I was late to the party and started from day 1 on December 21st. 
+I was late to the party and started from day 1 on December 21st, but this seems harder than the last two years. I completely skipped day 9, and something is wrong with my part 2 solutions for day 14, 16, and 16. 
 
 ## Year 2023 
 
