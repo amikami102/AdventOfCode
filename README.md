@@ -2,9 +2,13 @@
 
 This is my repository for [Advent of Code](https://adventofcode.com/) solutions year by year. I write my solutions in Python and try to only use built-in modules and methods. I borrowed the Python script template from [a *Real Python* article](https://realpython.com/python-advent-of-code/#the-structure-of-a-solution) where each day's script will have three main functions `parse()`, `solve_part1()`, and `solve_part2()` that are used in the `if __name__ == '__main__'` block. 
 
+## Year 2024
+
+I was late to the party and started from day 1 on December 21st. 
+
 ## Year 2023 
 
-Ongoing.
+2023 was not a good year for me. I had spent the whole year applying to jobs (north of 600 job applications, which is still less than the number of applications I submitted in 2020--it was a slow job market), so by the time December rolled around, I didn't even have the bandwidth to do anything for fun. I started the 2023 advent late in April because I was bored during the day when I was working remotely for a contract position. I got through until day 22, but I don't think I'll finish all of it.
 
 ## Year 2022
 
