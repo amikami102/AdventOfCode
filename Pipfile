@@ -8,6 +8,7 @@ pandas = "*"
 numpy = '*'
 scipy = "*"
 sympy = '*'
+pytest = '*'
 
 [dev-packages]
 
