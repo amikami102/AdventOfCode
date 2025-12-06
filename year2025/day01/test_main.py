@@ -1,5 +1,4 @@
 from typing import Iterable
-from pathlib import Path
 
 import pytest
 import main as solution
