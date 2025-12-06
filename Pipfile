@@ -9,6 +9,7 @@ numpy = '*'
 scipy = "*"
 sympy = '*'
 pytest = '*'
+more-itertools = '*'
 
 [dev-packages]
 
