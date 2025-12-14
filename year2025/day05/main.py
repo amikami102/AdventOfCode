@@ -95,4 +95,5 @@ if __name__ == '__main__':
     part2 = solve_part2(data)
     print(dedent(f"""\
         part1: the number of fresh, availble ingredients is {part1}.
-        part2: the total number of fresh ingredients is {part2}."""))
+        part2: the total number of fresh ingredients is {part2}.
+    """))
